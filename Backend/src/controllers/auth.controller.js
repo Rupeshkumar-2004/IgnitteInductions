@@ -2,6 +2,7 @@ import User from '../models/User.model.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import jwt  from 'jsonwebtoken';
 
 // HELPER FUNCTION: Generate Access and Refresh Tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -234,3 +235,4 @@ export const getCurrentUser = asyncHandler(async (req, res) => {
     .status(200)
     .json(new ApiResponse(200, req.user, 'User fetched successfully'));
 });
+
