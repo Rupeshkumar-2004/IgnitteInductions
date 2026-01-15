@@ -2,7 +2,7 @@ import User from '../models/User.model.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import jwt  from 'jsonwebtoken';
+import jwt from 'jsonwebtoken'; // ✅ Correct Import
 
 // HELPER FUNCTION: Generate Access and Refresh Tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -229,10 +229,9 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
   }
 });
 
-// GET CURRENT USER
+// GET CURRENT USER (This was the hidden one!)
 export const getCurrentUser = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, req.user, 'User fetched successfully'));
 });
-
