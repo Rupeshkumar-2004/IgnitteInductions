@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser, loginUser, logoutUser, refreshAccessToken } from "../controllers/auth.controller.js";
+import { registerUser, loginUser, logoutUser, refreshAccessToken, getCurrentUser } from "../controllers/auth.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js"; // You need to create this middleware!
 
 const router = Router();

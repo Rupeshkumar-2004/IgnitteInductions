@@ -21,7 +21,7 @@ const submitApplication = asyncHandler(async (req, res) => {
     const application = await Application.create({
         user: req.user._id, // Comes from auth middleware
         motivation,
-        skills, // Ensure frontend sends an array ["Java", "Python"]
+        skills, // Ensure frontend sends an array ["Teaching", "Chemistry"]
         previousExperience
     });
 

@@ -63,9 +63,18 @@ const userSchema = new mongoose.Schema(
 
 // MIDDLEWARE: Hash password before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+  // ✅ CRITICAL: Always call next(), don't use return next()
+  if (!this.isModified('password')) {
+    next(); // ✅ Just call next(), don't return
+    return; // ✅ Then return to exit the function
+  }
+  
+  try {
+    this.password = await bcrypt.hash(this.password, 10);
+    next(); // ✅ Call next after successful hash
+  } catch (error) {
+    next(error); // ✅ Pass error to next
+  }
 });
 
 // METHOD: Compare password for login
@@ -84,7 +93,7 @@ userSchema.methods.generateAccessToken = function () {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '15m' // 15 minutes
+      expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '15m'
     }
   );
 };
@@ -97,7 +106,7 @@ userSchema.methods.generateRefreshToken = function () {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' // 7 days
+      expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d'
     }
   );
 };
