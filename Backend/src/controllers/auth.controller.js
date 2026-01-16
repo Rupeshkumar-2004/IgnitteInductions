@@ -8,15 +8,21 @@ import jwt from 'jsonwebtoken'; // ✅ Correct Import
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
+
+    if (!user) {
+      // This will help identify if user is null
+      throw new ApiError(404, 'User not found while generating tokens');
+    }
+
     const accessToken = user.generateAccessToken();
     const refreshToken = user.generateRefreshToken();
 
-    // Save refresh token to database
     user.refreshToken = refreshToken;
     await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
+    console.error('Token generation error:', error); // TEMPORARY LOG
     throw new ApiError(500, 'Something went wrong while generating tokens');
   }
 };

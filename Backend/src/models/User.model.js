@@ -62,18 +62,17 @@ const userSchema = new mongoose.Schema(
 );
 
 // MIDDLEWARE: Hash password before saving
-userSchema.pre('save', async function (next) {
-  // ✅ CRITICAL: Always call next(), don't use return next()
+userSchema.pre('save', async function () {
   if (!this.isModified('password')) {
-    next(); // ✅ Just call next(), don't return
-    return; // ✅ Then return to exit the function
+    return; // just exit
   }
-  
+
   try {
     this.password = await bcrypt.hash(this.password, 10);
-    next(); // ✅ Call next after successful hash
+    // no next() needed
   } catch (error) {
-    next(error); // ✅ Pass error to next
+    // throw to fail the save
+    throw error;
   }
 });
 
@@ -84,6 +83,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 // METHOD: Generate Access Token (short-lived)
 userSchema.methods.generateAccessToken = function () {
+  console.log(process.env.ACCESS_TOKEN_SECRET)
   return jwt.sign(
     {
       _id: this._id,
@@ -100,6 +100,7 @@ userSchema.methods.generateAccessToken = function () {
 
 // METHOD: Generate Refresh Token (long-lived)
 userSchema.methods.generateRefreshToken = function () {
+  console.log(process.env.REFRESH_TOKEN_SECRET)
   return jwt.sign(
     {
       _id: this._id
