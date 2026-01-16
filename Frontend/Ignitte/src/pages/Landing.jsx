@@ -1,151 +1,154 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './components/ui/card';
+import { GraduationCap, Users, BookOpen, Award, ArrowRight, CheckCircle } from 'lucide-react';
 
-export default function Landing() {
-  const { user } = useAuth();
+const Landing = () => {
+  const features = [
+    {
+      icon: GraduationCap,
+      title: 'Quality Education',
+      description: 'World-class curriculum designed by industry experts and academics.',
+    },
+    {
+      icon: Users,
+      title: 'Expert Faculty',
+      description: 'Learn from experienced professors and industry professionals.',
+    },
+    {
+      icon: BookOpen,
+      title: 'Flexible Learning',
+      description: 'Choose from various programs that fit your schedule and goals.',
+    },
+    {
+      icon: Award,
+      title: 'Recognized Degrees',
+      description: 'Earn globally recognized certifications and degrees.',
+    },
+  ];
+
+  const steps = [
+    { step: 1, title: 'Create Account', description: 'Register with your email' },
+    { step: 2, title: 'Fill Application', description: 'Complete your details' },
+    { step: 3, title: 'Submit Documents', description: 'Upload required documents' },
+    { step: 4, title: 'Get Enrolled', description: 'Receive your admission' },
+  ];
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Reusable Navbar */}
-      <Navbar />
-
-      {/* Main Content */}
-      <main className="flex-grow">
-        {/* Hero Section */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="text-center">
-            <h1 className="text-6xl font-extrabold text-gray-900 mb-6">
-              Welcome to{' '}
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                IGNITE
-              </span>
+    <div className="min-h-screen">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/30 py-20 lg:py-32">
+        <div className="container mx-auto px-4">
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              Begin Your Journey to{' '}
+              <span className="text-primary">Academic Excellence</span>
             </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Where Innovation Meets Passion. Join our community of tech enthusiasts,
-              innovators, and dreamers shaping the future together.
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Apply for admission to our prestigious programs and take the first step towards a brighter future. Your dream career starts here.
             </p>
-            <div className="flex justify-center gap-4">
-              {!user && (
-                <>
-                  <Link
-                    to="/register"
-                    className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:shadow-xl transition transform hover:scale-105"
-                  >
-                    Start Your Journey
-                  </Link>
-                  <Link
-                    to="/about"
-                    className="bg-white text-gray-700 px-8 py-4 rounded-lg text-lg font-semibold border-2 border-gray-300 hover:border-blue-600 hover:text-blue-600 transition"
-                  >
-                    Learn More
-                  </Link>
-                </>
-              )}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" asChild className="text-lg px-8">
+                <Link to="/register">
+                  Apply Now <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild className="text-lg px-8">
+                <Link to="/about">Learn More</Link>
+              </Button>
             </div>
           </div>
+        </div>
+        
+        {/* Decorative elements */}
+        <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-accent/20 rounded-full blur-3xl" />
+      </section>
 
-          {/* Stats Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20">
-            <div className="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
-              <div className="text-4xl font-bold text-blue-600 mb-2">500+</div>
-              <div className="text-gray-600 font-medium">Active Members</div>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
-              <div className="text-4xl font-bold text-purple-600 mb-2">50+</div>
-              <div className="text-gray-600 font-medium">Projects Completed</div>
-            </div>
-            <div className="bg-white p-8 rounded-2xl shadow-lg text-center transform hover:scale-105 transition">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">20+</div>
-              <div className="text-gray-600 font-medium">Events Hosted</div>
-            </div>
-          </div>
-
-          {/* Features Section */}
-          <div className="mt-32">
-            <h2 className="text-4xl font-bold text-center text-gray-900 mb-16">
-              Why Join IGNITE?
+      {/* Features Section */}
+      <section className="py-20 bg-background">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Why Choose Us?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">💡</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Learn & Grow
-                </h3>
-                <p className="text-gray-600">
-                  Access workshops, bootcamps, and mentorship programs to enhance your skills.
-                </p>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Discover what makes our institution the perfect choice for your educational journey.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {features.map((feature, index) => (
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-border hover:border-primary/50">
+                <CardHeader>
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
+                    <feature.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section className="py-20 bg-muted/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              How to Apply
+            </h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Follow these simple steps to complete your application process.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map((item, index) => (
+              <div key={index} className="relative">
+                <div className="flex flex-col items-center text-center p-6">
+                  <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mb-4">
+                    {item.step}
+                  </div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">{item.title}</h3>
+                  <p className="text-muted-foreground text-sm">{item.description}</p>
+                </div>
+                {index < steps.length - 1 && (
+                  <div className="hidden lg:block absolute top-8 left-[60%] w-[80%] h-0.5 bg-border" />
+                )}
               </div>
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">🚀</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Build Projects
-                </h3>
-                <p className="text-gray-600">
-                  Work on real-world projects and build your portfolio with hands-on experience.
-                </p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">🤝</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Network
-                </h3>
-                <p className="text-gray-600">
-                  Connect with like-minded peers, alumni, and industry professionals.
-                </p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">🏆</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Compete
-                </h3>
-                <p className="text-gray-600">
-                  Participate in hackathons, coding competitions, and innovation challenges.
-                </p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">🎯</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Lead
-                </h3>
-                <p className="text-gray-600">
-                  Take initiative, lead teams, and develop your leadership skills.
-                </p>
-              </div>
-              <div className="bg-white p-8 rounded-2xl shadow-lg hover:shadow-xl transition">
-                <div className="text-4xl mb-4">🌟</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">
-                  Innovate
-                </h3>
-                <p className="text-gray-600">
-                  Turn your ideas into reality with resources and support from the club.
-                </p>
-              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-primary">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-6">
+              Ready to Start Your Journey?
+            </h2>
+            <p className="text-primary-foreground/80 text-lg mb-8">
+              Join thousands of students who have already taken the first step towards their dream career.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button size="lg" variant="secondary" asChild className="text-lg px-8">
+                <Link to="/register">
+                  <CheckCircle className="mr-2 h-5 w-5" />
+                  Get Started Today
+                </Link>
+              </Button>
             </div>
           </div>
-
-          {/* CTA Section */}
-          <div className="mt-32 mb-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-12 text-center text-white">
-            <h2 className="text-4xl font-bold mb-4">Ready to Ignite Your Future?</h2>
-            <p className="text-xl mb-8 opacity-90">
-              Join hundreds of students already making an impact
-            </p>
-            {!user && (
-              <Link
-                to="/register"
-                className="inline-block bg-white text-blue-600 px-10 py-4 rounded-lg text-lg font-semibold hover:shadow-2xl transition transform hover:scale-105"
-              >
-                Apply for Induction Now
-              </Link>
-            )}
-          </div>
-        </section>
-      </main>
-
-      {/* Reusable Footer */}
-      <Footer />
+        </div>
+      </section>
     </div>
   );
-}
+};
+
+export default Landing;

@@ -1,155 +1,247 @@
-import React, { useEffect, useState } from 'react';
-import { applicationAPI } from '../utils/api';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Button } from '../components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Badge } from '../components/ui/badge';
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Plus } from 'lucide-react';
+import { applicationAPI } from '../utils/api';
 
-export default function StudentDashboard() {
-  const { user, logout } = useAuth();
+const StudentDashboard = () => {
+  const { user } = useAuth();
   const [application, setApplication] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Form State
-  const [formData, setFormData] = useState({
-    motivation: '',
-    skills: '', // We will parse this string into an array
-    previousExperience: ''
-  });
-  const [submitStatus, setSubmitStatus] = useState({ loading: false, error: '' });
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch application status on mount
   useEffect(() => {
-    const fetchApp = async () => {
-      try {
-        const res = await applicationAPI.getMyApplication();
-        setApplication(res.data.data);
-      } catch (error) {
-        // If 404, it means user hasn't applied yet, which is fine
-        if (error.response?.status !== 404) {
-          console.error("Error fetching application", error);
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchApp();
+    fetchApplication();
   }, []);
 
-  const handleApply = async (e) => {
-    e.preventDefault();
-    setSubmitStatus({ loading: true, error: '' });
-
-    // Validate skills
-    const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s !== '');
-    if (skillsArray.length === 0) {
-        setSubmitStatus({ loading: false, error: 'Please enter at least one skill' });
-        return;
-    }
-
+  const fetchApplication = async () => {
     try {
-      const res = await applicationAPI.submit({
-        ...formData,
-        skills: skillsArray
-      });
-      setApplication(res.data.data); // Update state to show "Status" view
-    } catch (err) {
-      setSubmitStatus({ loading: false, error: err.response?.data?.message || 'Submission failed' });
+      const response = await applicationAPI.getMyApplication();
+      setApplication(response.data.application);
+    } catch (error) {
+      // No application found
+      setApplication(null);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (loading) return <div className="p-10 text-center">Loading Dashboard...</div>;
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'approved':
+        return (
+          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+            <CheckCircle className="h-3 w-3 mr-1" />
+            Approved
+          </Badge>
+        );
+      case 'rejected':
+        return (
+          <Badge variant="destructive">
+            <XCircle className="h-3 w-3 mr-1" />
+            Rejected
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
+            <Clock className="h-3 w-3 mr-1" />
+            Pending
+          </Badge>
+        );
+    }
+  };
+
+  const getCourseLabel = (code) => {
+    const courses = {
+      cs: 'Computer Science',
+      ba: 'Business Administration',
+      eng: 'Engineering',
+      health: 'Healthcare',
+      arts: 'Arts & Humanities',
+      data: 'Data Science',
+    };
+    return courses[code] || code;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16 items-center">
-            <h1 className="text-xl font-bold text-gray-900">Welcome, {user?.fullName}</h1>
-            <button onClick={logout} className="text-red-600 hover:text-red-800">Logout</button>
-          </div>
+    <div className="min-h-screen bg-background py-8 px-4">
+      <div className="container mx-auto max-w-4xl">
+        {/* Welcome Section */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-foreground mb-2">
+            Welcome back, {user?.name}!
+          </h1>
+          <p className="text-muted-foreground">
+            Track your application status and manage your profile.
+          </p>
         </div>
-      </nav>
 
-      <div className="max-w-4xl mx-auto py-10 px-4">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Card className="border-border">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Applications</p>
+                  <p className="text-2xl font-bold text-foreground">{application ? 1 : 0}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="text-lg font-semibold text-foreground capitalize">
+                    {application?.status || 'No Application'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-border">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Next Step</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {application?.status === 'approved'
+                      ? 'Check email for details'
+                      : application?.status === 'rejected'
+                      ? 'Contact admissions'
+                      : 'Await review'}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Application Details */}
         {application ? (
-          // VIEW: Application Status
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">Application Status</h2>
-            <div className={`inline-block px-4 py-2 rounded-full text-sm font-semibold mb-6 
-              ${application.status === 'accepted' ? 'bg-green-100 text-green-800' : 
-                application.status === 'rejected' ? 'bg-red-100 text-red-800' : 
-                'bg-yellow-100 text-yellow-800'}`}>
-              {application.status.toUpperCase()}
-            </div>
-            
-            <div className="border-t border-gray-200 pt-4">
-              <dl className="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+          <Card className="border-border">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Applied On</dt>
-                  <dd className="mt-1 text-sm text-gray-900">{new Date(application.createdAt).toLocaleDateString()}</dd>
+                  <CardTitle>Your Application</CardTitle>
+                  <CardDescription>
+                    Submitted on {new Date(application.submittedAt).toLocaleDateString()}
+                  </CardDescription>
+                </div>
+                {getStatusBadge(application.status)}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Full Name</p>
+                  <p className="font-medium text-foreground">{application.fullName}</p>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-gray-500">Skills</dt>
-                  <dd className="mt-1 text-sm text-gray-900">
-                    {application.skills.join(', ')}
-                  </dd>
+                  <p className="text-sm text-muted-foreground mb-1">Email</p>
+                  <p className="font-medium text-foreground">{application.email}</p>
                 </div>
-              </dl>
-            </div>
-          </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Course Applied</p>
+                  <p className="font-medium text-foreground">{getCourseLabel(application.course)}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground mb-1">Application ID</p>
+                  <p className="font-mono text-sm text-foreground">{application.id}</p>
+                </div>
+              </div>
+
+              {application.status === 'pending' && (
+                <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <div className="flex items-start gap-3">
+                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-yellow-800 dark:text-yellow-200">Application Under Review</p>
+                      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+                        Your application is being reviewed by our admissions team. You will receive an email notification once a decision has been made.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {application.status === 'approved' && (
+                <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-green-800 dark:text-green-200">Congratulations!</p>
+                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                        Your application has been approved. Please check your email for further instructions and next steps.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {application.status === 'rejected' && (
+                <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="flex items-start gap-3">
+                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
+                    <div>
+                      <p className="font-medium text-red-800 dark:text-red-200">Application Not Approved</p>
+                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                        Unfortunately, your application was not approved at this time. Please contact our admissions office for more information.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         ) : (
-          // VIEW: Application Form
-          <div className="bg-white shadow rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6">Induction Application Form</h2>
-            {submitStatus.error && <div className="bg-red-50 text-red-500 p-3 mb-4 rounded">{submitStatus.error}</div>}
-            
-            <form onSubmit={handleApply} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Why do you want to join Ignite?</label>
-                <textarea
-                  required
-                  minLength={50}
-                  maxLength={1000}
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                  placeholder="Tell us about your motivation (min 50 chars)..."
-                  value={formData.motivation}
-                  onChange={(e) => setFormData({...formData, motivation: e.target.value})}
-                />
-                <p className="text-xs text-gray-500 mt-1">{formData.motivation.length}/1000 characters</p>
+          <Card className="border-border">
+            <CardContent className="py-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
+                <FileText className="h-8 w-8 text-muted-foreground" />
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Skills (Comma separated)</label>
-                <input
-                  type="text"
-                  required
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="e.g. React, Node.js, Public Speaking"
-                  value={formData.skills}
-                  onChange={(e) => setFormData({...formData, skills: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700">Previous Experience (Optional)</label>
-                <textarea
-                  className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                  rows={3}
-                  value={formData.previousExperience}
-                  onChange={(e) => setFormData({...formData, previousExperience: e.target.value})}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitStatus.loading}
-                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300"
-              >
-                {submitStatus.loading ? 'Submitting...' : 'Submit Application'}
-              </button>
-            </form>
-          </div>
+              <h3 className="text-xl font-semibold text-foreground mb-2">No Application Found</h3>
+              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                You haven't submitted an application yet. Start your journey by applying for a course today.
+              </p>
+              <Button asChild size="lg">
+                <Link to="/apply">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Apply Now
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>
   );
-}
+};
+
+export default StudentDashboard;
