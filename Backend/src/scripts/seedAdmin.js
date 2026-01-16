@@ -8,12 +8,12 @@ dotenv.config({ path: './.env' });
 const seedAdmin = async () => {
     try {
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('✅ Connected to MongoDB');
+        console.log(' Connected to MongoDB');
 
         const existingAdmin = await User.findOne({ email: 'admin@clubinduction.com' });
         
         if (existingAdmin) {
-            console.log('⚠️  Admin already exists!');
+            console.log(' Admin already exists!');
             console.log('Email:', existingAdmin.email);
             process.exit(0);
         }
@@ -30,9 +30,9 @@ const seedAdmin = async () => {
             role: 'admin'
         }]);
 
-        console.log('🎉 Admin created!');
-        console.log('📧 Email: admin@clubinduction.com');
-        console.log('🔑 Password: admin123456');
+        console.log(' Admin created!');
+        console.log(' Email: admin@clubinduction.com');
+        console.log(' Password: admin123456');
         
         process.exit(0);
     } catch (error) {

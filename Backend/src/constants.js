@@ -1,4 +1,4 @@
-export const DB_NAME = "club-inductions";
+export const DB_NAME = "club-induction";
 
 // Application Status Constants
 export const APPLICATION_STATUS = {

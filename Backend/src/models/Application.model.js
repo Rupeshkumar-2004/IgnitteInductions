@@ -1,31 +1,3 @@
-/**
- * Application Schema and Model
- * 
- * Represents a user's application to join an organization/program.
- * Tracks application status, user motivation, skills, and admin review information.
- * 
- * @typedef {Object} Application
- * @property {mongoose.Types.ObjectId} user - Reference to the User who submitted the application (required)
- * @property {string} motivation - User's reason for joining (50-1000 characters, required)
- * @property {string[]} skills - Array of relevant skills (1-10 items, required)
- * @property {string} previousExperience - Optional description of relevant experience (max 500 characters)
- * @property {('pending'|'under-review'|'accepted'|'rejected')} status - Current application status (default: 'pending')
- * @property {string} adminNotes - Internal notes for admins only (max 500 characters)
- * @property {Date} statusUpdatedAt - Timestamp of last status change
- * @property {mongoose.Types.ObjectId} reviewedBy - Reference to the User who reviewed this application
- * @property {Date} createdAt - Automatic timestamp of creation
- * @property {Date} updatedAt - Automatic timestamp of last update
- * 
- * @method canBeEditedBy(userId) - Returns true if the application is pending and belongs to the specified user
- * 
- * @example
- * // Create a new application
- * const newApp = new Application({
- *   user: userId,
- *   motivation: 'I want to join because...',
- *   skills: ['JavaScript', 'React', 'Node.js']
- * });
- */
 import mongoose from 'mongoose';
 
 const applicationSchema = new mongoose.Schema(
@@ -101,6 +73,7 @@ applicationSchema.pre('save', function(next) {
   if (this.isModified('status')) {
     this.statusUpdatedAt = Date.now();
   }
+  next();
 });
 
 // METHOD: Check if user can edit application
