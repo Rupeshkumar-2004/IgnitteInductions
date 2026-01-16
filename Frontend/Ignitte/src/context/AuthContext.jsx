@@ -26,18 +26,31 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // In Frontend/Ignitte/src/context/AuthContext.jsx
+
   const login = async (email, password) => {
     const response = await authAPI.login({ email, password });
-    localStorage.setItem('accessToken', response.data.accessToken);
-    setUser(response.data.user);
+    
+    if (response.data && response.data.data) {
+        localStorage.setItem('accessToken', response.data.data.accessToken);
+        const user = response.data.data.user;
+        setUser(user);
+        return user; // <--- Return the user here
+    }
+    throw new Error("Login failed");
   };
 
-  const register = async (name, email, password) => {
-    const response = await authAPI.register({ name, email, password });
-    localStorage.setItem('accessToken', response.data.accessToken);
-    setUser(response.data.user);
-  };
-
+  // Change the register function to this:
+  const register = async (fullName, email, password, department, phone) => {
+  // Notice the keys match what the backend expects
+  const response = await authAPI.register({ fullName, email, password, department, phone });
+  
+  // Also fix the data access path we discussed earlier
+  if (response.data && response.data.data) {
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      setUser(response.data.data.user);
+  }
+};
   const logout = async () => {
     try {
       await authAPI.logout();

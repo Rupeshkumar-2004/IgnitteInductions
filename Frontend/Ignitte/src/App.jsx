@@ -15,7 +15,8 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ApplicationForm from "./pages/ApplicationForm";
 import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
-
+import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 const queryClient = new QueryClient();
 
 const App = () => (

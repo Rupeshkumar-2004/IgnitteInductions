@@ -5,8 +5,25 @@ import cookieParser from 'cookie-parser';
 const app = express();
 
 // Middleware
+// Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        
+        // Allow any localhost origin (for development)
+        if (origin.includes('localhost')) {
+            return callback(null, true);
+        }
+        
+        // Check strict allowed origin (for production)
+        if (origin === process.env.CORS_ORIGIN) {
+            return callback(null, true);
+        }
+        
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+    },
     credentials: true
 }));
 app.use(express.json({ limit: "16kb" }));

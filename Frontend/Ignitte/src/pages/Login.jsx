@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
+import { useAuth } from '@/context/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useToast } from '../hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -25,13 +25,45 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      await login(email, password);
+      // 1. Wait for login to complete
+      // In Login.jsx handleSubmit:
+
+      const user = await login(email, password); // Capture the returned user
+
+      if (user.role === 'admin') {
+          navigate("/admin/dashboard", { replace: true });
+      } else {
+          navigate("/dashboard", { replace: true });
+      }
+      
+      // 2. Get the role from the stored user data (or from the login response if modified)
+      // We can peek at localStorage or trust the state update will happen
+      // Ideally, login() should return the user object to make this clean.
+      
+      // For now, let's fetch the user directly after login to decide where to go
+      const storedData = localStorage.getItem('accessToken'); 
+      // Note: This is a quick check. A better way is if login() returns the user object.
+      
+      // IMPROVED LOGIC:
+      // Let's assume your login() in AuthContext now returns the user object (as we fixed it previously).
+      // If not, we can infer the role based on the email for this specific admin
+      
       toast({
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
-      navigate(from, { replace: true });
+
+      // 3. Conditional Navigation
+      if (email === "admin@clubinduction.com") {
+          navigate("/admin/dashboard", { replace: true });
+      } else {
+          // Default to student dashboard
+          const from = location.state?.from?.pathname || '/dashboard';
+          navigate(from, { replace: true });
+      }
+
     } catch (error) {
+      console.error(error);
       toast({
         title: 'Login failed',
         description: error.response?.data?.message || 'Invalid email or password.',
