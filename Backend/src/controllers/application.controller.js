@@ -43,4 +43,37 @@ const getMyApplication = asyncHandler(async (req, res) => {
     );
 });
 
-export { submitApplication, getMyApplication };
+// 3. Submit a Task (Student)
+const submitTask = asyncHandler(async (req, res) => {
+    const { taskId } = req.params;
+    const { submission } = req.body; // The link or text answer
+
+    if (!submission) {
+        throw new ApiError(400, "Submission content is required");
+    }
+
+    // Find application by user and specific task
+    const application = await Application.findOne({ 
+        user: req.user._id,
+        "tasks._id": taskId 
+    });
+
+    if (!application) {
+        throw new ApiError(404, "Task not found");
+    }
+
+    // Find the specific task in the array
+    const task = application.tasks.id(taskId);
+    
+    // Update it
+    task.studentSubmission = submission;
+    task.status = 'submitted';
+    
+    await application.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, application, "Task submitted successfully")
+    );
+});
+
+export { submitApplication, getMyApplication, submitTask };

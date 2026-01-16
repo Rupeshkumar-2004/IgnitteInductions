@@ -163,10 +163,42 @@ const deleteApplication = asyncHandler(async (req, res) => {
     );
 });
 
+// 6. Assign a Task to a Student
+const assignTask = asyncHandler(async (req, res) => {
+    const { applicationId } = req.params;
+    const { title, description } = req.body;
+
+    if (!title) {
+        throw new ApiError(400, "Task title is required");
+    }
+
+    // Find the application
+    const application = await Application.findById(applicationId);
+    if (!application) {
+        throw new ApiError(404, "Application not found");
+    }
+
+    // Add the task
+    const newTask = {
+        title,
+        description,
+        assignedBy: req.user._id, // Capture the Admin's ID
+        status: 'pending'
+    };
+
+    application.tasks.push(newTask);
+    await application.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, application, "Task assigned successfully")
+    );
+});
+
 export {
     getAllApplications,
     updateApplicationStatus,
     getApplicationById,
     getDashboardStats,
-    deleteApplication
+    deleteApplication,
+    assignTask
 };

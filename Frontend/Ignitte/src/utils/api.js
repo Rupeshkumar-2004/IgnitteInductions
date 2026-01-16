@@ -31,6 +31,7 @@ export const authAPI = {
 export const applicationAPI = {
   submit: (data) => api.post('/applications/submit', data),
   getMyApplication: () => api.get('/applications/me'),
+  submitTask: (taskId, link) => api.post(`/applications/tasks/${taskId}`, { submission: link }),
 };
 
 // Admin APIs
@@ -40,6 +41,7 @@ export const adminAPI = {
   updateStatus: (id, data) => api.patch(`/admin/applications/${id}`, data),
   deleteApplication: (id) => api.delete(`/admin/applications/${id}`),
   getDashboardStats: () => api.get('/admin/dashboard/stats'),
+  assignTask: (id, data) => api.post(`/admin/applications/${id}/task`, data)
 };
 
 export default api;

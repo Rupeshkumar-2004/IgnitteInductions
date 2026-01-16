@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
+import { useAuth } from '../context/AuthContext';
+import { Button } from '@/components/ui/button'; // Use alias '@'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -12,7 +14,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -20,365 +22,292 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Users,
-  FileText,
-  CheckCircle,
-  XCircle,
-  Clock,
-  Search,
-  Eye,
-  Trash2,
-  Loader2,
-} from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Search, Filter, MoreHorizontal, CheckCircle, XCircle, Clock, FileText, PlusCircle } from 'lucide-react';
 import { adminAPI } from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
 
 const AdminDashboard = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
   const [applications, setApplications] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, rejected: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, underReview: 0, accepted: 0, rejected: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedApp, setSelectedApp] = useState(null);
-  const [isViewOpen, setIsViewOpen] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  
+  // --- NEW STATE FOR TASK ASSIGNMENT ---
+  const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [taskData, setTaskData] = useState({ title: '', description: '' });
+  const [isAssigning, setIsAssigning] = useState(false);
+  // -------------------------------------
+
+  const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
-  }, [statusFilter]);
+    fetchDashboardData();
+  }, [page, searchTerm, statusFilter]);
 
-  const fetchData = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const [appsResponse, statsResponse] = await Promise.all([
-        adminAPI.getAllApplications({ status: statusFilter !== 'all' ? statusFilter : undefined }),
-        adminAPI.getDashboardStats(),
-      ]);
-      setApplications(appsResponse.data.applications || []);
-      setStats(statsResponse.data.stats || { total: 0, pending: 0, approved: 0, rejected: 0 });
+      setIsLoading(true);
+      
+      const statsRes = await adminAPI.getDashboardStats();
+      setStats(statsRes.data.data.stats);
+
+      const params = {
+        page,
+        limit: 10,
+        search: searchTerm,
+        status: statusFilter !== 'all' ? statusFilter : undefined
+      };
+      
+      const appsRes = await adminAPI.getAllApplications(params);
+      setApplications(appsRes.data.data.applications);
+      setTotalPages(appsRes.data.data.pagination.pages);
+      
     } catch (error) {
-      console.error('Failed to fetch data:', error);
-      // Mock data for demo purposes
-      setApplications([
-        { id: '1', fullName: 'John Doe', email: 'john.example.com', phone: '+1234567890', course: 'cs', status: 'pending', submittedAt: new Date().toISOString() },
-        { id: '2', fullName: 'Jane Smith', email: 'jane.example.com', phone: '+0987654321', course: 'ba', status: 'approved', submittedAt: new Date().toISOString() },
-        { id: '3', fullName: 'Bob Wilson', email: 'bob.example.com', phone: '+1122334455', course: 'eng', status: 'rejected', submittedAt: new Date().toISOString() },
-      ]);
-      setStats({ total: 3, pending: 1, approved: 1, rejected: 1 });
+      console.error("Dashboard Error:", error);
+      toast({
+        title: "Error fetching data",
+        description: "Could not load dashboard data",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleStatusUpdate = async (id, newStatus) => {
-    setIsUpdating(true);
     try {
       await adminAPI.updateStatus(id, { status: newStatus });
-      toast({
-        title: 'Status Updated',
-        description: `Application has been ${newStatus}.`,
-      });
-      fetchData();
-      setIsViewOpen(false);
+      toast({ title: "Status Updated", description: `Application marked as ${newStatus}` });
+      fetchDashboardData();
     } catch (error) {
-      toast({
-        title: 'Update Failed',
-        description: 'Failed to update application status.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsUpdating(false);
+      toast({ title: "Update Failed", variant: "destructive" });
     }
   };
 
-  const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this application?')) return;
-    
+  // --- NEW FUNCTIONS FOR TASKS ---
+  const openTaskDialog = (studentApp) => {
+    setSelectedStudent(studentApp);
+    setTaskData({ title: '', description: '' }); // Reset form
+    setIsTaskDialogOpen(true);
+  };
+
+  const handleAssignTask = async () => {
+    if (!taskData.title) {
+        toast({ title: "Title Required", description: "Please enter a task title", variant: "destructive" });
+        return;
+    }
+
+    setIsAssigning(true);
     try {
-      await adminAPI.deleteApplication(id);
-      toast({
-        title: 'Application Deleted',
-        description: 'The application has been removed.',
-      });
-      fetchData();
+        await adminAPI.assignTask(selectedStudent._id, taskData);
+        toast({ title: "Task Assigned", description: `Task sent to ${selectedStudent.user.fullName}` });
+        setIsTaskDialogOpen(false);
+        // Optional: Refresh data if you want to show task count in table
     } catch (error) {
-      toast({
-        title: 'Delete Failed',
-        description: 'Failed to delete application.',
-        variant: 'destructive',
-      });
+        toast({ 
+            title: "Assignment Failed", 
+            description: error.response?.data?.message || "Could not assign task", 
+            variant: "destructive" 
+        });
+    } finally {
+        setIsAssigning(false);
     }
   };
-
-  const getCourseLabel = (code) => {
-    const courses = {
-      cs: 'Computer Science',
-      ba: 'Business Administration',
-      eng: 'Engineering',
-      health: 'Healthcare',
-      arts: 'Arts & Humanities',
-      data: 'Data Science',
-    };
-    return courses[code] || code;
-  };
+  // -------------------------------
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">Approved</Badge>;
-      case 'rejected':
-        return <Badge variant="destructive">Rejected</Badge>;
-      default:
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">Pending</Badge>;
-    }
+    const styles = {
+      approved: "bg-green-100 text-green-800",
+      rejected: "bg-red-100 text-red-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      "under-review": "bg-blue-100 text-blue-800"
+    };
+    return <Badge className={styles[status] || "bg-gray-100"}>{status}</Badge>;
   };
 
-  const filteredApplications = applications.filter(app =>
-    app.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    app.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-background py-8 px-4">
-      <div className="container mx-auto max-w-7xl">
+    <div className="min-h-screen bg-background p-8">
+      <div className="max-w-7xl mx-auto space-y-8">
+        
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Welcome back, {user?.name}. Manage student applications.</p>
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Manage applications and assign tasks</p>
+          </div>
+          <div className="flex items-center gap-2">
+             <div className="bg-primary/10 text-primary px-4 py-2 rounded-lg font-medium">
+                Admin: {user?.fullName || "User"}
+             </div>
+          </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Users className="h-6 w-6 text-primary" />
-                </div>
+        {/* Stats Row */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[
+            { title: "Total Applications", value: stats.total, icon: FileText, color: "text-blue-600" },
+            { title: "Pending Review", value: stats.pending, icon: Clock, color: "text-yellow-600" },
+            { title: "Accepted", value: stats.accepted, icon: CheckCircle, color: "text-green-600" },
+            { title: "Rejected", value: stats.rejected, icon: XCircle, color: "text-red-600" },
+          ].map((stat, i) => (
+            <Card key={i}>
+              <CardContent className="flex items-center justify-between p-6">
                 <div>
-                  <p className="text-sm text-muted-foreground">Total</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.total}</p>
+                  <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
+                  <h2 className="text-3xl font-bold">{stat.value}</h2>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <stat.icon className={`h-8 w-8 ${stat.color} opacity-20`} />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Pending</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.pending}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Approved</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.approved}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                  <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Rejected</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.rejected}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Filters & Search */}
+        <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-card p-4 rounded-lg border">
+          <div className="relative w-full md:w-96">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search by name or email..." 
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="under-review">Under Review</SelectItem>
+              <SelectItem value="accepted">Accepted</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         {/* Applications Table */}
-        <Card className="border-border">
+        <Card>
           <CardHeader>
             <CardTitle>Applications</CardTitle>
-            <CardDescription>Review and manage student applications</CardDescription>
+            <CardDescription>View and manage student applications.</CardDescription>
           </CardHeader>
           <CardContent>
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name or email..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="approved">Approved</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Table */}
-            <div className="rounded-md border border-border overflow-x-auto">
-              <Table>
-                <TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Student</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Applied Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead className="hidden md:table-cell">Email</TableHead>
-                    <TableHead className="hidden lg:table-cell">Course</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="hidden sm:table-cell">Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                     <TableCell colSpan={5} className="text-center py-8">Loading...</TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredApplications.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        No applications found
+                ) : applications.length === 0 ? (
+                  <TableRow>
+                     <TableCell colSpan={5} className="text-center py-8">No applications found</TableCell>
+                  </TableRow>
+                ) : (
+                  applications.map((app) => (
+                    <TableRow key={app._id}>
+                      <TableCell>
+                        <div className="font-medium">{app.user?.fullName}</div>
+                        <div className="text-sm text-muted-foreground">{app.user?.email}</div>
+                      </TableCell>
+                      <TableCell>{app.course || app.user?.department || 'N/A'}</TableCell>
+                      <TableCell>{getStatusBadge(app.status)}</TableCell>
+                      <TableCell>{new Date(app.createdAt).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                            {/* Assign Task Button */}
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => openTaskDialog(app)}
+                                className="border-dashed"
+                            >
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Assign Task
+                            </Button>
+
+                            <Select 
+                                defaultValue={app.status} 
+                                onValueChange={(val) => handleStatusUpdate(app._id, val)}
+                            >
+                                <SelectTrigger className="w-[130px] h-8">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="under-review">Under Review</SelectItem>
+                                    <SelectItem value="accepted">Accept</SelectItem>
+                                    <SelectItem value="rejected">Reject</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredApplications.map((app) => (
-                      <TableRow key={app.id}>
-                        <TableCell className="font-medium">{app.fullName}</TableCell>
-                        <TableCell className="hidden md:table-cell">{app.email}</TableCell>
-                        <TableCell className="hidden lg:table-cell">{getCourseLabel(app.course)}</TableCell>
-                        <TableCell>{getStatusBadge(app.status)}</TableCell>
-                        <TableCell className="hidden sm:table-cell">
-                          {new Date(app.submittedAt).toLocaleDateString()}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedApp(app);
-                                setIsViewOpen(true);
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-destructive"
-                              onClick={() => handleDelete(app.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+            
+            {/* Pagination controls can go here */}
           </CardContent>
         </Card>
-
-        {/* View Application Dialog */}
-        <Dialog open={isViewOpen} onOpenChange={setIsViewOpen}>
-          <DialogContent className="max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Application Details</DialogTitle>
-              <DialogDescription>
-                Review the application and update its status
-              </DialogDescription>
-            </DialogHeader>
-            {selectedApp && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Full Name</p>
-                    <p className="font-medium">{selectedApp.fullName}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{selectedApp.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone</p>
-                    <p className="font-medium">{selectedApp.phone}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Course</p>
-                    <p className="font-medium">{getCourseLabel(selectedApp.course)}</p>
-                  </div>
-                </div>
-                {selectedApp.message && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Message</p>
-                    <p className="text-sm mt-1">{selectedApp.message}</p>
-                  </div>
-                )}
-                <div>
-                  <p className="text-sm text-muted-foreground">Current Status</p>
-                  <div className="mt-1">{getStatusBadge(selectedApp.status)}</div>
-                </div>
-              </div>
-            )}
-            <DialogFooter className="flex-col sm:flex-row gap-2">
-              {selectedApp?.status === 'pending' && (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleStatusUpdate(selectedApp.id, 'rejected')}
-                    disabled={isUpdating}
-                    className="w-full sm:w-auto"
-                  >
-                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <XCircle className="h-4 w-4 mr-2" />}
-                    Reject
-                  </Button>
-                  <Button
-                    onClick={() => handleStatusUpdate(selectedApp.id, 'approved')}
-                    disabled={isUpdating}
-                    className="w-full sm:w-auto"
-                  >
-                    {isUpdating ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4 mr-2" />}
-                    Approve
-                  </Button>
-                </>
-              )}
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
+
+      {/* --- TASK ASSIGNMENT DIALOG --- */}
+      <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Assign Task</DialogTitle>
+            <DialogDescription>
+              Assign a new task to <strong>{selectedStudent?.user?.fullName}</strong>. They will see this in their dashboard.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="task-title">Task Title</Label>
+              <Input
+                id="task-title"
+                placeholder="e.g. Submit GitHub Repository"
+                value={taskData.title}
+                onChange={(e) => setTaskData({ ...taskData, title: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="task-desc">Description / Instructions</Label>
+              <Textarea
+                id="task-desc"
+                placeholder="Enter detailed instructions for the student..."
+                value={taskData.description}
+                onChange={(e) => setTaskData({ ...taskData, description: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTaskDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleAssignTask} disabled={isAssigning}>
+              {isAssigning ? "Assigning..." : "Assign Task"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* ----------------------------- */}
+
     </div>
   );
 };

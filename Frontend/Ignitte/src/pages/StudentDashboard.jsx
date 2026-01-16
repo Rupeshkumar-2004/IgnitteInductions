@@ -1,16 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Plus } from 'lucide-react';
+import { FileText, Clock, CheckCircle, XCircle, AlertCircle, Plus, ExternalLink, ChevronRight } from 'lucide-react';
 import { applicationAPI } from '@/utils/api';
+import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const [application, setApplication] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Task Submission State
+  const [submissionLink, setSubmissionLink] = useState('');
+  const [submittingId, setSubmittingId] = useState(null);
+  
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchApplication();
@@ -19,226 +28,163 @@ const StudentDashboard = () => {
   const fetchApplication = async () => {
     try {
       const response = await applicationAPI.getMyApplication();
-      setApplication(response.data.application);
+      setApplication(response.data.data); // Adjust based on your API wrapper
     } catch (error) {
-      // No application found
       setApplication(null);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <Badge className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Approved
-          </Badge>
-        );
-      case 'rejected':
-        return (
-          <Badge variant="destructive">
-            <XCircle className="h-3 w-3 mr-1" />
-            Rejected
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400">
-            <Clock className="h-3 w-3 mr-1" />
-            Pending
-          </Badge>
-        );
+  const handleTaskSubmit = async (taskId) => {
+    if (!submissionLink) return;
+    
+    setSubmittingId(taskId);
+    try {
+        await applicationAPI.submitTask(taskId, submissionLink);
+        toast({ title: "Task Submitted", description: "Your work has been sent for review." });
+        setSubmissionLink('');
+        fetchApplication(); // Refresh to show updated status
+    } catch (error) {
+        toast({ title: "Error", description: "Could not submit task", variant: "destructive" });
+    } finally {
+        setSubmittingId(null);
     }
   };
 
-  const getCourseLabel = (code) => {
-    const courses = {
-      cs: 'Computer Science',
-      ba: 'Business Administration',
-      eng: 'Engineering',
-      health: 'Healthcare',
-      arts: 'Arts & Humanities',
-      data: 'Data Science',
+  const getStatusBadge = (status) => {
+    const styles = {
+      approved: "bg-green-100 text-green-800",
+      accepted: "bg-green-100 text-green-800",
+      rejected: "bg-red-100 text-red-800",
+      pending: "bg-yellow-100 text-yellow-800",
+      "under-review": "bg-blue-100 text-blue-800"
     };
-    return courses[code] || code;
+    return <Badge className={styles[status] || "bg-gray-100"}>{status}</Badge>;
   };
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // ... (Keep the "No Application" view from before if application is null) ...
+  if (!application) {
+      return (
+          <div className="min-h-screen flex items-center justify-center">
+             <div className="text-center">
+                <h2 className="text-2xl font-bold">No Application Found</h2>
+                <Button asChild className="mt-4"><Link to="/apply">Apply Now</Link></Button>
+             </div>
+          </div>
+      );
   }
 
   return (
     <div className="min-h-screen bg-background py-8 px-4">
-      <div className="container mx-auto max-w-4xl">
-        {/* Welcome Section */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Welcome back, {user?.name}!
-          </h1>
-          <p className="text-muted-foreground">
-            Track your application status and manage your profile.
-          </p>
+      <div className="container mx-auto max-w-5xl space-y-8">
+        
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">Student Dashboard</h1>
+          <p className="text-muted-foreground">Welcome, {user?.fullName}</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <FileText className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Applications</p>
-                  <p className="text-2xl font-bold text-foreground">{application ? 1 : 0}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Status</p>
-                  <p className="text-lg font-semibold text-foreground capitalize">
-                    {application?.status || 'No Application'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <AlertCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Next Step</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {application?.status === 'approved'
-                      ? 'Check email for details'
-                      : application?.status === 'rejected'
-                      ? 'Contact admissions'
-                      : 'Await review'}
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Application Details */}
-        {application ? (
-          <Card className="border-border">
+        {/* Application Status Card */}
+        <Card>
             <CardHeader>
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <CardTitle>Your Application</CardTitle>
-                  <CardDescription>
-                    Submitted on {new Date(application.submittedAt).toLocaleDateString()}
-                  </CardDescription>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Application Status</CardTitle>
+                        <CardDescription>Applied for {application.course || "Course"}</CardDescription>
+                    </div>
+                    {getStatusBadge(application.status)}
                 </div>
-                {getStatusBadge(application.status)}
-              </div>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Full Name</p>
-                  <p className="font-medium text-foreground">{application.fullName}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Email</p>
-                  <p className="font-medium text-foreground">{application.email}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Course Applied</p>
-                  <p className="font-medium text-foreground">{getCourseLabel(application.course)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Application ID</p>
-                  <p className="font-mono text-sm text-foreground">{application.id}</p>
-                </div>
-              </div>
-
-              {application.status === 'pending' && (
-                <div className="mt-6 p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <div className="flex items-start gap-3">
-                    <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-yellow-800 dark:text-yellow-200">Application Under Review</p>
-                      <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
-                        Your application is being reviewed by our admissions team. You will receive an email notification once a decision has been made.
-                      </p>
+                <div className="flex gap-4 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4" />
+                        Applied: {new Date(application.createdAt).toLocaleDateString()}
                     </div>
-                  </div>
+                    {/* Show current round if it exists */}
+                    {application.currentRound && (
+                         <div className="flex items-center gap-2">
+                            <CheckCircle className="h-4 w-4 text-primary" />
+                            Current Stage: <span className="text-foreground font-medium">{application.currentRound}</span>
+                        </div>
+                    )}
                 </div>
-              )}
-
-              {application.status === 'approved' && (
-                <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                  <div className="flex items-start gap-3">
-                    <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-green-800 dark:text-green-200">Congratulations!</p>
-                      <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                        Your application has been approved. Please check your email for further instructions and next steps.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {application.status === 'rejected' && (
-                <div className="mt-6 p-4 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                  <div className="flex items-start gap-3">
-                    <XCircle className="h-5 w-5 text-red-600 dark:text-red-400 mt-0.5" />
-                    <div>
-                      <p className="font-medium text-red-800 dark:text-red-200">Application Not Approved</p>
-                      <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                        Unfortunately, your application was not approved at this time. Please contact our admissions office for more information.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
             </CardContent>
-          </Card>
-        ) : (
-          <Card className="border-border">
-            <CardContent className="py-12 text-center">
-              <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                <FileText className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-xl font-semibold text-foreground mb-2">No Application Found</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                You haven't submitted an application yet. Start your journey by applying for a course today.
-              </p>
-              <Button asChild size="lg">
-                <Link to="/apply">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Apply Now
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
+        </Card>
+
+        {/* --- TASKS SECTION --- */}
+        <div>
+            <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Assigned Tasks
+            </h2>
+            
+            {(!application.tasks || application.tasks.length === 0) ? (
+                <Card className="bg-muted/50 border-dashed">
+                    <CardContent className="py-8 text-center text-muted-foreground">
+                        No tasks assigned yet. Relax and check back later!
+                    </CardContent>
+                </Card>
+            ) : (
+                <div className="grid gap-4">
+                    {application.tasks.map((task) => (
+                        <Card key={task._id} className={task.status === 'pending' ? 'border-primary/50' : ''}>
+                            <CardHeader>
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <CardTitle className="text-lg">{task.title}</CardTitle>
+                                        <CardDescription className="mt-1">{task.description}</CardDescription>
+                                    </div>
+                                    <Badge variant={task.status === 'pending' ? 'outline' : 'secondary'}>
+                                        {task.status}
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent>
+                                {task.status === 'pending' ? (
+                                    <div className="flex gap-2 items-end">
+                                        <div className="grid w-full gap-1.5">
+                                            <label className="text-sm font-medium">Submission Link / Answer</label>
+                                            <Input 
+                                                placeholder="Paste your Google Drive or GitHub link here..." 
+                                                value={submissionLink}
+                                                onChange={(e) => setSubmissionLink(e.target.value)}
+                                            />
+                                        </div>
+                                        <Button 
+                                            onClick={() => handleTaskSubmit(task._id)}
+                                            disabled={submittingId === task._id}
+                                        >
+                                            {submittingId === task._id ? "Sending..." : "Submit"}
+                                        </Button>
+                                    </div>
+                                ) : (
+                                    <div className="bg-muted p-3 rounded-md text-sm">
+                                        <span className="font-semibold">You Submitted: </span>
+                                        <a href={task.studentSubmission} target="_blank" rel="noreferrer" className="text-primary hover:underline truncate inline-block max-w-[300px] align-bottom">
+                                            {task.studentSubmission}
+                                        </a>
+                                        {task.adminFeedback && (
+                                            <div className="mt-2 pt-2 border-t border-border">
+                                                <span className="font-semibold text-yellow-600">Feedback: </span>
+                                                {task.adminFeedback}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ))}
+                </div>
+            )}
+        </div>
+        {/* --------------------- */}
+
       </div>
     </div>
   );
