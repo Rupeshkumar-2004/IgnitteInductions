@@ -5,6 +5,7 @@ const taskSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
   assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   status: { 
     type: String, 
     enum: ['pending', 'submitted', 'verified', 'rejected'], 
@@ -83,11 +84,10 @@ applicationSchema.index({ user: 1 });
 applicationSchema.index({ status: 1 });
 applicationSchema.index({ createdAt: -1 });
 
-applicationSchema.pre('save', function(next) {
+applicationSchema.pre('save',async function(next) {
   if (this.isModified('status')) {
     this.statusUpdatedAt = Date.now();
   }
-  next();
 });
 
 const Application = mongoose.model('Application', applicationSchema);

@@ -41,7 +41,9 @@ export const adminAPI = {
   updateStatus: (id, data) => api.patch(`/admin/applications/${id}`, data),
   deleteApplication: (id) => api.delete(`/admin/applications/${id}`),
   getDashboardStats: () => api.get('/admin/dashboard/stats'),
-  assignTask: (id, data) => api.post(`/admin/applications/${id}/task`, data)
+  assignTask: (id, data) => api.post(`/admin/applications/${id}/task`, data),
+  createTeamMember: (data) => api.post('/admin/team/create', data),
+  verifyTask: (appId, taskId, data) => api.patch(`/admin/applications/${appId}/tasks/${taskId}`, data),
 };
 
 export default api;

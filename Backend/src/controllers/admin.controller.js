@@ -4,19 +4,20 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import Application from "../models/Application.model.js";
 import User from "../models/User.model.js";
 
-//Get All Applications (Admin only)
+// 1. Get All Applications (Admin only)
 const getAllApplications = asyncHandler(async (req, res) => {
-    // Get query parameters for filtering
     const { status, department, search, page = 1, limit = 10 } = req.query;
 
-    // Build filter object
     const filter = {};
     if (status) filter.status = status;
 
-    // Create query   <----need to learn this
-    let query = Application.find(filter).populate('user', 'fullName email department phone rollNumber');
+    // Base Query with Populates
+    // We populate 'verifiedBy' inside the tasks array to show who checked it
+    let query = Application.find(filter)
+        .populate('user', 'fullName email department phone rollNumber')
+        .populate('tasks.verifiedBy', 'fullName email'); 
 
-    // Search by name or email (if user provides search term)
+    // Search Logic
     if (search) {
         const users = await User.find({
             $or: [
@@ -27,22 +28,25 @@ const getAllApplications = asyncHandler(async (req, res) => {
         
         const userIds = users.map(u => u._id);
         filter.user = { $in: userIds };
-        query = Application.find(filter).populate('user', 'fullName email department phone rollNumber');
+        // Re-apply query with filter and populates
+        query = Application.find(filter)
+            .populate('user', 'fullName email department phone rollNumber')
+            .populate('tasks.verifiedBy', 'fullName email');
     }
 
-    // Filter by department
+    // Department Filter
     if (department) {
         const users = await User.find({ department: department }).select('_id');
         const userIds = users.map(u => u._id);
         filter.user = { $in: userIds };
-        query = Application.find(filter).populate('user', 'fullName email department phone rollNumber');
+        query = Application.find(filter)
+            .populate('user', 'fullName email department phone rollNumber')
+            .populate('tasks.verifiedBy', 'fullName email');
     }
 
     // Pagination
     const skip = (page - 1) * limit;
     const applications = await query.sort({ createdAt: -1 }).skip(skip).limit(parseInt(limit));
-
-    // Get total count for pagination
     const total = await Application.countDocuments(filter);
 
     return res.status(200).json(
@@ -57,18 +61,16 @@ const getAllApplications = asyncHandler(async (req, res) => {
     );
 });
 
-// Update Application Status (Admin only)
+// 2. Update Application Status (Global Status)
 const updateApplicationStatus = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
     const { status, adminNotes } = req.body;
 
-    // Validate status
     const validStatuses = ['pending', 'under-review', 'accepted', 'rejected'];
     if (!validStatuses.includes(status)) {
-        throw new ApiError(400, "Invalid status. Must be: pending, under-review, accepted, or rejected");
+        throw new ApiError(400, "Invalid status");
     }
 
-    // Find and update application
     const application = await Application.findByIdAndUpdate(
         applicationId,
         {
@@ -78,7 +80,7 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
             statusUpdatedAt: Date.now()
         },
         { new: true }
-    ).populate('user', 'fullName email department phone');
+    ).populate('user', 'fullName email');
 
     if (!application) {
         throw new ApiError(404, "Application not found");
@@ -89,13 +91,14 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
     );
 });
 
-// Get Single Application Details (Admin only)
+// 3. Get Single Application
 const getApplicationById = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
 
     const application = await Application.findById(applicationId)
         .populate('user', 'fullName email department phone rollNumber profilePicture createdAt')
-        .populate('reviewedBy', 'fullName email');
+        .populate('reviewedBy', 'fullName email')
+        .populate('tasks.verifiedBy', 'fullName email');
 
     if (!application) {
         throw new ApiError(404, "Application not found");
@@ -106,24 +109,14 @@ const getApplicationById = asyncHandler(async (req, res) => {
     );
 });
 
-// 4. Get Dashboard Statistics (Admin only)
+// 4. Dashboard Stats
 const getDashboardStats = asyncHandler(async (req, res) => {
     const stats = await Application.aggregate([
-        {
-            $group: {
-                _id: "$status",
-                count: { $sum: 1 }
-            }
-        }
+        { $group: { _id: "$status", count: { $sum: 1 } } }
     ]);
 
-    // Format stats
     const formattedStats = {
-        total: 0,
-        pending: 0,
-        underReview: 0,
-        accepted: 0,
-        rejected: 0
+        total: 0, pending: 0, underReview: 0, accepted: 0, rejected: 0
     };
 
     stats.forEach(stat => {
@@ -134,55 +127,38 @@ const getDashboardStats = asyncHandler(async (req, res) => {
         if (stat._id === 'rejected') formattedStats.rejected = stat.count;
     });
 
-    // Get recent applications
     const recentApplications = await Application.find()
         .sort({ createdAt: -1 })
         .limit(5)
         .populate('user', 'fullName email department');
 
     return res.status(200).json(
-        new ApiResponse(200, {
-            stats: formattedStats,
-            recentApplications
-        }, "Dashboard stats fetched successfully")
+        new ApiResponse(200, { stats: formattedStats, recentApplications }, "Stats fetched")
     );
 });
 
-// 5. Delete Application (Admin only)
+// 5. Delete Application
 const deleteApplication = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
-
     const application = await Application.findByIdAndDelete(applicationId);
-
-    if (!application) {
-        throw new ApiError(404, "Application not found");
-    }
-
-    return res.status(200).json(
-        new ApiResponse(200, {}, "Application deleted successfully")
-    );
+    if (!application) throw new ApiError(404, "Application not found");
+    return res.status(200).json(new ApiResponse(200, {}, "Deleted successfully"));
 });
 
-// 6. Assign a Task to a Student
+// 6. Assign Task
 const assignTask = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
     const { title, description } = req.body;
 
-    if (!title) {
-        throw new ApiError(400, "Task title is required");
-    }
+    if (!title) throw new ApiError(400, "Task title is required");
 
-    // Find the application
     const application = await Application.findById(applicationId);
-    if (!application) {
-        throw new ApiError(404, "Application not found");
-    }
+    if (!application) throw new ApiError(404, "Application not found");
 
-    // Add the task
     const newTask = {
         title,
         description,
-        assignedBy: req.user._id, // Capture the Admin's ID
+        assignedBy: req.user._id,
         status: 'pending'
     };
 
@@ -194,11 +170,62 @@ const assignTask = asyncHandler(async (req, res) => {
     );
 });
 
+// 7. Create Team Member
+const createTeamMember = asyncHandler(async (req, res) => {
+    const { fullName, email, password, phone, department, role } = req.body;
+
+    if ([fullName, email, password, phone, department, role].some((field) => field?.trim() === "")) {
+        throw new ApiError(400, "All fields are required");
+    }
+
+    if (!['admin', 'interviewer'].includes(role)) {
+        throw new ApiError(400, "Invalid role.");
+    }
+
+    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
+    if (existingUser) throw new ApiError(409, "User exists");
+
+    const user = await User.create({
+        fullName, email, password, phone, department, role
+    });
+
+    const createdUser = await User.findById(user._id).select("-password");
+
+    return res.status(201).json(
+        new ApiResponse(200, createdUser, `${role} created successfully`)
+    );
+});
+
+// 8. Verify Task (NEW)
+const verifyTask = asyncHandler(async (req, res) => {
+    const { applicationId, taskId } = req.params;
+    const { status, feedback } = req.body; // status: 'verified' or 'rejected'
+
+    const application = await Application.findById(applicationId);
+    if (!application) throw new ApiError(404, "App not found");
+
+    const task = application.tasks.id(taskId);
+    if (!task) throw new ApiError(404, "Task not found");
+
+    // Update Task Fields
+    task.status = status;
+    task.adminFeedback = feedback;
+    task.verifiedBy = req.user._id; // <--- Tracks who verified it
+
+    await application.save();
+
+    return res.status(200).json(
+        new ApiResponse(200, application, `Task ${status}`)
+    );
+});
+
 export {
     getAllApplications,
     updateApplicationStatus,
     getApplicationById,
     getDashboardStats,
     deleteApplication,
-    assignTask
+    assignTask,
+    createTeamMember,
+    verifyTask // Exporting the new function
 };
