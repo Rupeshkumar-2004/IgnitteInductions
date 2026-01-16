@@ -196,10 +196,10 @@ const createTeamMember = asyncHandler(async (req, res) => {
     );
 });
 
-// 8. Verify Task (NEW)
+// 8. Verify Task (Improved with Unverify Restriction)
 const verifyTask = asyncHandler(async (req, res) => {
     const { applicationId, taskId } = req.params;
-    const { status, feedback } = req.body; // status: 'verified' or 'rejected'
+    const { status, feedback } = req.body; // status: 'verified', 'rejected', 'pending'
 
     const application = await Application.findById(applicationId);
     if (!application) throw new ApiError(404, "App not found");
@@ -207,15 +207,46 @@ const verifyTask = asyncHandler(async (req, res) => {
     const task = application.tasks.id(taskId);
     if (!task) throw new ApiError(404, "Task not found");
 
+    // --- RESTRICTION LOGIC ---
+    // If the task is currently verified, we need to check permissions before changing it
+    if (task.status === 'verified') {
+        // Check if the current user is the one who verified it
+        const isOriginalVerifier = task.verifiedBy && task.verifiedBy.toString() === req.user._id.toString();
+        
+        // Check if the current user is the Super Admin (using email from seedAdmin.js)
+        // I've also added 'admin@inductions' as requested in your prompt
+        const isSuperAdmin = [
+            'admin@clubinduction.com', 
+            'admin@inductions'
+        ].includes(req.user.email);
+
+        // If the new status is NOT 'verified' (meaning they are trying to unverify/reject it)
+        // AND the user is neither the original verifier nor a super admin:
+        if (status !== 'verified' && !isOriginalVerifier && !isSuperAdmin) {
+            throw new ApiError(403, "Action forbidden: Only the original verifier or Super Admin can unverify this task.");
+        }
+    }
+    // -------------------------
+
     // Update Task Fields
     task.status = status;
     task.adminFeedback = feedback;
-    task.verifiedBy = req.user._id; // <--- Tracks who verified it
+
+    // Logic for updating verifiedBy field
+    if (status === 'verified') {
+        // If marking as verified, set the current user as the verifier
+        task.verifiedBy = req.user._id;
+    } else if (status === 'pending') {
+        // If unverifying (resetting to pending), clear the verifier
+        task.verifiedBy = null;
+    }
+    // If rejected, we might want to keep the verifiedBy (as "rejectedBy") or clear it. 
+    // Currently leaving it as is or overwriting if they verify again later.
 
     await application.save();
 
     return res.status(200).json(
-        new ApiResponse(200, application, `Task ${status}`)
+        new ApiResponse(200, application, `Task status updated to ${status}`)
     );
 });
 

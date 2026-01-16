@@ -18,13 +18,12 @@ import {
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Search, CheckCircle, XCircle, Clock, FileText, PlusCircle, Eye, ExternalLink, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { Search, CheckCircle, XCircle, Clock, FileText, PlusCircle, Eye, ExternalLink, ThumbsUp, ThumbsDown, RotateCcw } from 'lucide-react';
 import { adminAPI } from '@/utils/api';
 import { useToast } from '@/hooks/use-toast';
 
@@ -113,17 +112,24 @@ const AdminDashboard = () => {
   // Verify/Reject Logic
   const handleVerifyTask = async (taskId, status, feedback = "") => {
     try {
-        // You need to ensure this endpoint exists in adminAPI
         await adminAPI.verifyTask(selectedStudent._id, taskId, { status, feedback });
         toast({ title: `Task ${status}`, description: "Status updated successfully." });
         
-        // Refresh local student data to show updated badge immediately
+        // Refresh local student data
         const updatedApps = applications.map(app => {
             if (app._id === selectedStudent._id) {
-                app.tasks = app.tasks.map(t => 
-                    t._id === taskId ? { ...t, status, verifiedBy: { fullName: user.fullName } } : t
-                );
-                setSelectedStudent({...app}); // Update the dialog view
+                const newTasks = app.tasks.map(t => {
+                   if (t._id === taskId) {
+                       // Update verifier info locally
+                       const verifier = status === 'verified' ? { fullName: user.fullName, _id: user._id, email: user.email } : null;
+                       return { ...t, status, verifiedBy: verifier };
+                   }
+                   return t;
+                });
+                
+                const updatedStudent = { ...app, tasks: newTasks };
+                setSelectedStudent(updatedStudent);
+                return updatedStudent;
             }
             return app;
         });
@@ -131,7 +137,7 @@ const AdminDashboard = () => {
 
     } catch (error) {
         console.error(error);
-        toast({ title: "Error", description: "Could not verify task", variant: "destructive" });
+        toast({ title: "Error", description: error.response?.data?.message || "Could not update task", variant: "destructive" });
     }
   };
 
@@ -158,6 +164,29 @@ const AdminDashboard = () => {
     return <Badge className={styles[status] || "bg-gray-100"}>{status}</Badge>;
   };
 
+  // --- IMPROVED: Check Permissions & State ---
+  const canManageTask = (task) => {
+      // 1. If it's submitted, always allow action
+      if (task.status === 'submitted') return true;
+
+      // 2. If it's verified, check restricted permissions
+      if (task.status === 'verified') {
+          const superAdmins = ['admin@clubinduction.com', 'admin@inductions'];
+          const isSuperAdmin = superAdmins.includes(user?.email);
+          const verifierId = task.verifiedBy?._id || task.verifiedBy;
+          const isVerifier = verifierId === user?._id;
+          return isSuperAdmin || isVerifier;
+      }
+
+      // 3. FIX: If it's pending but has a submission, allow action (This fixes your issue)
+      if (task.status === 'pending' && task.studentSubmission) return true;
+
+      // 4. If it's rejected, allow action (to undo rejection)
+      if (task.status === 'rejected') return true;
+
+      return false;
+  };
+
   return (
     <div className="min-h-screen bg-background p-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -178,9 +207,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="team">Manage Team</TabsTrigger>
           </TabsList>
 
-          {/* TAB 1: APPLICATIONS */}
           <TabsContent value="applications" className="space-y-8 mt-6">
-            {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               {[
                 { title: "Total", value: stats.total, icon: FileText, color: "text-blue-600" },
@@ -200,7 +227,6 @@ const AdminDashboard = () => {
               ))}
             </div>
 
-            {/* Filters */}
             <div className="flex flex-col md:flex-row gap-4 justify-between items-center bg-card p-4 rounded-lg border">
               <div className="relative w-full md:w-96">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -218,7 +244,6 @@ const AdminDashboard = () => {
               </Select>
             </div>
 
-            {/* Table */}
             <Card>
               <CardHeader><CardTitle>Applications</CardTitle></CardHeader>
               <CardContent>
@@ -273,7 +298,6 @@ const AdminDashboard = () => {
             </Card>
           </TabsContent>
 
-          {/* TAB 2: MANAGE TEAM */}
           <TabsContent value="team" className="mt-6">
             <Card>
               <CardHeader>
@@ -305,7 +329,6 @@ const AdminDashboard = () => {
         </Tabs>
       </div>
 
-      {/* ASSIGN TASK DIALOG */}
       <Dialog open={isTaskDialogOpen} onOpenChange={setIsTaskDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Assign Task</DialogTitle></DialogHeader>
@@ -320,7 +343,6 @@ const AdminDashboard = () => {
         </DialogContent>
       </Dialog>
 
-      {/* VIEW SUBMISSIONS & VERIFY DIALOG */}
       <Dialog open={isViewTasksOpen} onOpenChange={setIsViewTasksOpen}>
         <DialogContent className="max-w-2xl">
             <DialogHeader>
@@ -354,21 +376,35 @@ const AdminDashboard = () => {
                                     <div className="text-xs text-muted-foreground">
                                         Assigned: {new Date(task.createdAt).toLocaleDateString()}
                                     </div>
-                                    {/* REVIEWED BY FIELD */}
+                                    
                                     {task.verifiedBy && (
                                         <div className="text-xs text-green-600 font-medium">
-                                            Reviewed by: {task.verifiedBy.fullName}
+                                            Reviewed by: {task.verifiedBy.fullName || task.verifiedBy.email || "Admin"}
                                         </div>
                                     )}
-                                    {/* VERIFY BUTTONS */}
-                                    {task.status === 'submitted' && (
+
+                                    {/* --- BUTTONS LOGIC --- */}
+                                    {canManageTask(task) && (
                                         <div className="flex gap-2 mt-1">
-                                            <Button size="xs" variant="outline" className="h-7 text-green-600 border-green-200 hover:bg-green-50" onClick={() => handleVerifyTask(task._id, 'verified')}>
-                                                <ThumbsUp className="h-3 w-3 mr-1" /> Verify
-                                            </Button>
-                                            <Button size="xs" variant="outline" className="h-7 text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleVerifyTask(task._id, 'rejected')}>
-                                                <ThumbsDown className="h-3 w-3 mr-1" /> Reject
-                                            </Button>
+                                            {/* Show Verify button if it's NOT verified yet */}
+                                            {task.status !== 'verified' && (
+                                                <>
+                                                    <Button size="xs" variant="outline" className="h-7 text-green-600 border-green-200 hover:bg-green-50" onClick={() => handleVerifyTask(task._id, 'verified')}>
+                                                        <ThumbsUp className="h-3 w-3 mr-1" /> Verify
+                                                    </Button>
+                                                    <Button size="xs" variant="outline" className="h-7 text-red-600 border-red-200 hover:bg-red-50" onClick={() => handleVerifyTask(task._id, 'rejected')}>
+                                                        <ThumbsDown className="h-3 w-3 mr-1" /> Reject
+                                                    </Button>
+                                                </>
+                                            )}
+                                            
+                                            {/* Show UNVERIFY/RESET button if it IS verified */}
+                                            {/* Updated to set status to 'submitted' instead of 'pending' so it stays visible as needing review */}
+                                            {task.status === 'verified' && (
+                                                <Button size="xs" variant="outline" className="h-7 text-yellow-600 border-yellow-200 hover:bg-yellow-50" onClick={() => handleVerifyTask(task._id, 'submitted')}>
+                                                    <RotateCcw className="h-3 w-3 mr-1" /> Mark Unverified
+                                                </Button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
