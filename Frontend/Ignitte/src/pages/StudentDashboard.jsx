@@ -31,6 +31,7 @@ const StudentDashboard = () => {
       setApplication(response.data.data); // Adjust based on your API wrapper
     } catch (error) {
       setApplication(null);
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -47,6 +48,7 @@ const StudentDashboard = () => {
         fetchApplication(); // Refresh to show updated status
     } catch (error) {
         toast({ title: "Error", description: "Could not submit task", variant: "destructive" });
+        console.log(error);
     } finally {
         setSubmittingId(null);
     }

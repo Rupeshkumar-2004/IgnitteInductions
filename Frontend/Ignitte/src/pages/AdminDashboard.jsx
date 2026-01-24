@@ -67,6 +67,7 @@ const AdminDashboard = () => {
       
     } catch (error) {
       toast({ title: "Error", description: "Could not load data", variant: "destructive" });
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -79,6 +80,7 @@ const AdminDashboard = () => {
       fetchDashboardData();
     } catch (error) {
       toast({ title: "Update Failed", variant: "destructive" });
+      console.log(error);
     }
   };
 
@@ -99,6 +101,7 @@ const AdminDashboard = () => {
         fetchDashboardData();
     } catch (error) {
         toast({ title: "Failed", description: "Could not assign task", variant: "destructive" });
+        console.log(error);
     } finally {
         setIsAssigning(false);
     }

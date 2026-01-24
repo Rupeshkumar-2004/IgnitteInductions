@@ -21,12 +21,11 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       localStorage.removeItem('accessToken');
       setUser(null);
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // In Frontend/Ignitte/src/context/AuthContext.jsx
 
   const login = async (email, password) => {
     const response = await authAPI.login({ email, password });

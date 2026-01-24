@@ -33,7 +33,7 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">InductionPortal</span>
+            <span className="text-xl font-bold text-foreground">IgnitteInductions</span>
           </Link>
 
           {/* Desktop Navigation */}

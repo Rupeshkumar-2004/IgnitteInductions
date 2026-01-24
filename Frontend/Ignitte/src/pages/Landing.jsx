@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { GraduationCap, Users, BookOpen, Award, ArrowRight, CheckCircle } from 'lucide-react';
 
@@ -37,12 +38,26 @@ const Landing = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-accent/30 py-20 lg:py-32">
-        <div className="container mx-auto px-4">
+      <section 
+          className="relative min-h-[80vh] flex items-center overflow-hidden py-20 lg:py-32"
+          style = {{
+            backgroundImage: "url('./public/LandingPage.png')",
+            backgroundSize : 'cover',
+            backgroundPosition : 'center',
+            backgroundRepeat : 'no-repeat'
+          }}
+      >
+        <div className="absolute inset-0 bg-black/50 pointer-events-none" />
+        <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1 }}
+            >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
               Begin Your Journey to{' '}
-              <span className="text-primary">Academic Excellence</span>
+              <span className="text-primary-foreground">Academic Excellence</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Apply for admission to our prestigious programs and take the first step towards a brighter future. Your dream career starts here.
@@ -57,6 +72,7 @@ const Landing = () => {
                 <Link to="/about">Learn More</Link>
               </Button>
             </div>
+          </motion.div>
           </div>
         </div>
         

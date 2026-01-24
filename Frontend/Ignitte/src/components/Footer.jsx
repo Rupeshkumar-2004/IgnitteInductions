@@ -10,10 +10,10 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <GraduationCap className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">InductionPortal</span>
+              <span className="text-xl font-bold text-foreground">IgnitteInductions</span>
             </div>
             <p className="text-muted-foreground text-sm">
-              Your gateway to academic excellence. Apply for your dream course and start your journey today.
+              A team of NIT Trichy students to train economically disadvantaged students for JEE Exams and helps them analyze career opportunities.
             </p>
           </div>
 
@@ -46,12 +46,23 @@ const Footer = () => {
 
           {/* Programs */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Programs</h3>
+            <h3 className="font-semibold text-foreground mb-4">Verticals</h3>
             <ul className="space-y-2">
-              <li className="text-muted-foreground text-sm">Computer Science</li>
-              <li className="text-muted-foreground text-sm">Business Administration</li>
-              <li className="text-muted-foreground text-sm">Engineering</li>
-              <li className="text-muted-foreground text-sm">Arts & Humanities</li>
+              <li>
+                <Link to="https://kt.ignitte.org/" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Kalvithadam
+                </Link>
+              </li>
+              <li>
+                <Link to="https://ignitte.org/" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Impluse
+                </Link>
+              </li>
+             <li>
+                <Link to="https://www.youtube.com/IGNITTETeachingClubofNITT" className="text-muted-foreground hover:text-primary transition-colors text-sm">
+                  Youtube
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -61,7 +72,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Mail className="h-4 w-4 text-primary" />
-                admissions@portal.edu
+                ignitte@nitt.edu
               </li>
               <li className="flex items-center gap-2 text-muted-foreground text-sm">
                 <Phone className="h-4 w-4 text-primary" />
@@ -69,7 +80,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-2 text-muted-foreground text-sm">
                 <MapPin className="h-4 w-4 text-primary mt-0.5" />
-                123 Education Street, Campus City, 12345
+                NIT Trichy, Tiruchirappalli, Tamil Nadu, India - 620015
               </li>
             </ul>
           </div>
@@ -78,7 +89,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-muted-foreground text-sm">
-              © {new Date().getFullYear()} InductionPortal. All rights reserved.
+              © {new Date().getFullYear()} Ignitte. All rights reserved.
             </p>
             <div className="flex gap-6">
               <Link to="#" className="text-muted-foreground hover:text-primary transition-colors text-sm">
