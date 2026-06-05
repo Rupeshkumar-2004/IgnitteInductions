@@ -1,0 +1,63 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="lane_client" value="Client / Frontend" style="swimlane;horizontal=0;startSize=110;fillColor=#f5f5f5;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="1170" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_route" value="Router &amp; Middleware" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f4f8;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="150" width="1170" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_controller" value="Admin Controller" style="swimlane;horizontal=0;startSize=110;fillColor=#fff0e6;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="300" width="1170" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_db" value="Database (MongoDB)" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f5e9;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="450" width="1170" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="start" value="Admin changes status dropdown" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_client">
+      <mxGeometry x="120" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="route" value="PATCH /application/:applicationId/status" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_route">
+      <mxGeometry x="300" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="jwt" value="verifyJWT &amp; verifyAdmin" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_route">
+      <mxGeometry x="480" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="validate" value="Validate Status Input" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="lane_controller">
+      <mxGeometry x="660" y="35" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="update" value="Application.findByIdAndUpdate(applicationId, updatePayload, { returnDocument: 'after' })" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_controller">
+      <mxGeometry x="840" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="db_update" value="Update Application Status &amp; Notes" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="860" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="respond" value="HTTP 200 OK with updated application JSON" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_controller">
+      <mxGeometry x="1020" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="success" value="Refresh Application Status in UI" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_client">
+      <mxGeometry x="1020" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge1" edge="1" parent="1" source="start" target="route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge2" edge="1" parent="1" source="route" target="jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge3" edge="1" parent="1" source="jwt" target="validate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge4" edge="1" parent="1" source="validate" target="update" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge5" edge="1" parent="1" source="update" target="db_update" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge6" edge="1" parent="1" source="db_update" target="respond" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge7" edge="1" parent="1" source="respond" target="success" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

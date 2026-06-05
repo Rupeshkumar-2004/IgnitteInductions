@@ -1,0 +1,135 @@
+<mxfile host="65bd71144e">
+    <diagram id="3FxpVGJNLm0pwH-zDWXg" name="Page-1">
+        <mxGraphModel dx="536" dy="1568" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="lane_fe" value="Admin Frontend (Dashboard / Forms)" style="swimlane;horizontal=0;startSize=110;fillColor=#f5f5f5;html=1;" parent="1" vertex="1">
+                    <mxGeometry width="2700" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_dash" value="AdminDashboard.jsx loads" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_fe" vertex="1">
+                    <mxGeometry x="120" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_mid" value="Routing &amp; Admin Middleware" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f4f8;html=1;" parent="1" vertex="1">
+                    <mxGeometry y="150" width="2700" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_verify_admin" value="verifyJWT &amp; verifyAdmin" style="rhombus;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="300" y="35" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_get_stats" value="GET /api/v1/admin/dashboard/stats" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="480" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_get_apps" value="GET /api/v1/admin/applications" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="840" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_patch_status" value="PATCH /api/v1/admin/applications/:id" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="1200" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_post_task" value="POST /api/v1/admin/applications/:id/task" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="1560" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_patch_verify" value="PATCH /api/v1/admin/applications/:id/tasks/:taskId" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="1920" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_post_team" value="POST /api/v1/admin/team/create" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_mid" vertex="1">
+                    <mxGeometry x="2280" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_ctrl" value="Admin Controller" style="swimlane;horizontal=0;startSize=110;fillColor=#fff0e6;html=1;" parent="1" vertex="1">
+                    <mxGeometry y="300" width="2700" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_stats" value="getDashboardStats()" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="660" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_apps" value="getAllApplications()" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="1020" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_status" value="updateApplicationStatus()" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="1380" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_task" value="assignTask()" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="1740" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_verify" value="verifyTask() (original verifier / superadmin checks)" style="rhombus;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="2100" y="35" width="140" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_ctrl_team" value="createTeamMember()" style="rounded=1;whiteSpace=wrap;html=1;" parent="lane_ctrl" vertex="1">
+                    <mxGeometry x="2460" y="45" width="140" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="lane_db" value="Database (MongoDB)" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f5e9;html=1;" parent="1" vertex="1">
+                    <mxGeometry y="450" width="2700" height="150" as="geometry">
+                        <mxRectangle y="450" width="40" height="150" as="alternateBounds"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="node_db_stats" value="Aggregate application status counts" style="shape=cylinder3;whiteSpace=wrap;html=1;" parent="lane_db" vertex="1">
+                    <mxGeometry x="680" y="40" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_db_apps" value="Query Applications (Filter, search, paginate)" style="shape=cylinder3;whiteSpace=wrap;html=1;" parent="lane_db" vertex="1">
+                    <mxGeometry x="1040" y="40" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_db_task" value="Push new task schema into tasks array" style="shape=cylinder3;whiteSpace=wrap;html=1;" parent="lane_db" vertex="1">
+                    <mxGeometry x="1760" y="40" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_db_verify" value="Update task status &amp; verifiedBy field" style="shape=cylinder3;whiteSpace=wrap;html=1;" parent="lane_db" vertex="1">
+                    <mxGeometry x="2120" y="40" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="node_db_team" value="Create new User (role: admin/interviewer)" style="shape=cylinder3;whiteSpace=wrap;html=1;" parent="lane_db" vertex="1">
+                    <mxGeometry x="2480" y="40" width="100" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_dash" target="node_verify_admin" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_verify_admin" target="node_get_stats" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_get_stats" target="node_ctrl_stats" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_stats" target="node_db_stats" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_db_stats" target="node_get_apps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_get_apps" target="node_ctrl_apps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge7" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_apps" target="node_db_apps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge8" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_db_apps" target="node_patch_status" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge9" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_patch_status" target="node_ctrl_status" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge10" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_status" target="node_post_task" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge11" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_post_task" target="node_ctrl_task" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge12" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_task" target="node_db_task" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge13" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_db_task" target="node_patch_verify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge14" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_patch_verify" target="node_ctrl_verify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge15" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_verify" target="node_db_verify" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge16" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_db_verify" target="node_post_team" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge17" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_post_team" target="node_ctrl_team" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="edge18" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;" parent="1" source="node_ctrl_team" target="node_db_team" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

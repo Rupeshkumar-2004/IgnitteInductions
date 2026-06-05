@@ -47,7 +47,8 @@ const roundSchema = new mongoose.Schema({
   feedback: String,
 
   verdict: {
-    type: String, enum: ['passed', 'failed', 'hold'],
+    type: String,
+    enum: ['passed', 'failed', 'hold'],
     default: 'hold'
   },
 
@@ -87,11 +88,13 @@ const applicationSchema = new mongoose.Schema(
       default: 'pending'
     },
 
-    // --- CRITICAL: Add the tasks array here ---
     tasks: [taskSchema],
-    // ------------------------------------------
 
-    currentRound: { type: String, default: 'Application Review' },
+    currentRound: {
+      type: String,
+      default: 'Application Review'
+    },
+
     rounds: [roundSchema],
 
     adminNotes: {

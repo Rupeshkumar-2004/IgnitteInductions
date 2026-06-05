@@ -18,7 +18,7 @@ const getAllApplications = asyncHandler(async (req, res) => {
     // We populate 'verifiedBy' inside the tasks array to show who checked it
     let query = Application.find(filter)
         .populate('user', 'fullName email department phone rollNumber')
-        .populate('tasks.verifiedBy', 'fullName email'); 
+        .populate('tasks.verifiedBy', 'fullName email');
 
     // Search Logic
     if (search) {
@@ -28,7 +28,7 @@ const getAllApplications = asyncHandler(async (req, res) => {
                 { email: { $regex: search, $options: 'i' } }
             ]
         }).select('_id');
-        
+
         const userIds = users.map(u => u._id);
         filter.user = { $in: userIds };
         // Re-apply query with filter and populates
@@ -115,7 +115,12 @@ const getApplicationById = asyncHandler(async (req, res) => {
 // 4. Dashboard Stats
 const getDashboardStats = asyncHandler(async (req, res) => {
     const stats = await Application.aggregate([
-        { $group: { _id: "$status", count: { $sum: 1 } } }
+        {
+            $group: {
+                _id: "$status",
+                count: { $sum: 1 }
+            }
+        }
     ]);
 
     const formattedStats = {
@@ -205,7 +210,7 @@ const verifyTask = asyncHandler(async (req, res) => {
     const { status, feedback } = req.body; // status: 'verified', 'rejected', 'pending'
 
     const application = await Application.findById(applicationId);
-    if (!application) throw new ApiError(404, "App not found");
+    if (!application) throw new ApiError(404, "Application not found");
 
     const task = application.tasks.id(taskId);
     if (!task) throw new ApiError(404, "Task not found");
@@ -215,10 +220,10 @@ const verifyTask = asyncHandler(async (req, res) => {
     if (task.status === 'verified') {
         // Check if the current user is the one who verified it
         const isOriginalVerifier = task.verifiedBy && task.verifiedBy.toString() === req.user._id.toString();
-        
+
         // Check if the current user is the Super Admin (using email from seedAdmin.js)
         const isSuperAdmin = [
-            'admin@clubinduction.com', 
+            'admin@clubinduction.com',
             'admin@inductions'
         ].includes(req.user.email);
 
@@ -260,5 +265,5 @@ export {
     deleteApplication,
     assignTask,
     createTeamMember,
-    verifyTask // Exporting the new function
+    verifyTask
 };

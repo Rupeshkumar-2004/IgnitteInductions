@@ -1,0 +1,105 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="lane_fe" value="Frontend (Pages &amp; UI Components)" style="swimlane;horizontal=0;startSize=110;fillColor=#f5f5f5;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="1800" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_mid" value="Routing &amp; Security Middleware" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f4f8;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="150" width="1800" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_ctrl" value="Application Controller" style="swimlane;horizontal=0;startSize=110;fillColor=#fff0e6;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="300" width="1800" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_db" value="Database (MongoDB Models)" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f5e9;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="450" width="1800" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_landing" value="Landing Page &amp; Navbar" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="120" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_check_auth" value="Is Logged In &amp; Student?" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="300" y="35" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_form" value="ApplicationForm.jsx" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="480" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_post_submit" value="POST /api/v1/applications/submit" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="480" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_ctrl_submit" value="submitApplication()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="660" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_db_create" value="Create Application in DB" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="680" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_dash" value="StudentDashboard.jsx" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="840" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_get_me" value="GET /api/v1/applications/me" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="840" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_ctrl_me" value="getMyApplication()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="1020" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_db_find" value="Find Application by User ID" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="1040" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_task_form" value="Task Submission Form (UI)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="1200" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_post_task" value="POST /api/v1/applications/tasks/:taskId" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="1200" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_ctrl_task" value="submitTask()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="1380" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_db_task" value="Update Task Status &amp; Submission" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="1400" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_refresh" value="UI Status Updates (e.g. 'submitted')" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="1560" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge1" edge="1" parent="1" source="node_landing" target="node_check_auth" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge2" edge="1" parent="1" source="node_check_auth" target="node_form" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge3" edge="1" parent="1" source="node_form" target="node_post_submit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge4" edge="1" parent="1" source="node_post_submit" target="node_ctrl_submit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge5" edge="1" parent="1" source="node_ctrl_submit" target="node_db_create" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge6" edge="1" parent="1" source="node_db_create" target="node_dash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge7" edge="1" parent="1" source="node_dash" target="node_get_me" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge8" edge="1" parent="1" source="node_get_me" target="node_ctrl_me" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge9" edge="1" parent="1" source="node_ctrl_me" target="node_db_find" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge10" edge="1" parent="1" source="node_db_find" target="node_task_form" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge11" edge="1" parent="1" source="node_task_form" target="node_post_task" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge12" edge="1" parent="1" source="node_post_task" target="node_ctrl_task" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge13" edge="1" parent="1" source="node_ctrl_task" target="node_db_task" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge14" edge="1" parent="1" source="node_db_task" target="node_refresh" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

@@ -28,27 +28,28 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     const response = await authAPI.login({ email, password });
-    
+
     if (response.data && response.data.data) {
-        localStorage.setItem('accessToken', response.data.data.accessToken);
-        const user = response.data.data.user;
-        setUser(user);
-        return user; // <--- Return the user here
+      localStorage.setItem('accessToken', response.data.data.accessToken);
+      const user = response.data.data.user;
+      setUser(user);
+      return user; // <--- Return the user here
     }
     throw new Error("Login failed");
   };
 
   // Change the register function to this:
   const register = async (fullName, email, password, department, phone) => {
-  // Notice the keys match what the backend expects
-  const response = await authAPI.register({ fullName, email, password, department, phone });
-  
-  // Also fix the data access path we discussed earlier
-  if (response.data && response.data.data) {
+    // Notice the keys match what the backend expects
+    const response = await authAPI.register({ fullName, email, password, department, phone });
+
+    // Also fix the data access path we discussed earlier
+    if (response.data && response.data.data) {
       localStorage.setItem('accessToken', response.data.data.accessToken);
       setUser(response.data.data.user);
-  }
-};
+    }
+  };
+
   const logout = async () => {
     try {
       await authAPI.logout();

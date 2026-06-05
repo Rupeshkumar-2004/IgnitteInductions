@@ -1,0 +1,105 @@
+<mxGraphModel adaptiveColors="auto">
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="lane_fe" value="Frontend (React / Pages / Context)" style="swimlane;horizontal=0;startSize=110;fillColor=#f5f5f5;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="0" width="2300" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_mid" value="Routing &amp; Middleware" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f4f8;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="150" width="2300" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_ctrl" value="Auth Controller" style="swimlane;horizontal=0;startSize=110;fillColor=#fff0e6;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="300" width="2300" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="lane_db" value="Database (MongoDB)" style="swimlane;horizontal=0;startSize=110;fillColor=#e8f5e9;html=1;" vertex="1" parent="1">
+      <mxGeometry x="0" y="450" width="2300" height="150" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_start" value="User registers or logins (UI Forms)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="120" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_submit" value="Submit Form Data (FullName, Email, Password...)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="300" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_route" value="POST /register or /login (Express Routes)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="480" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_zod" value="Zod Validator (registerSchema / loginSchema)" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="660" y="35" width="140" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_controller" value="auth.controller (registerUser / loginUser)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="840" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_check_db" value="Find / Create User Record" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="860" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_tokens" value="generateAccessAndRefreshTokens()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="1020" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_save_token" value="Save RefreshToken in DB" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="1040" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_response" value="HTTP Response (Set cookies + JSON data)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="1200" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_context" value="AuthContext updates React state" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="1380" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_sec_req" value="Secured Request (GET /me, POST /logout)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="1560" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_verify_jwt" value="verifyJWT Middleware (Check cookie &amp; header)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_mid">
+      <mxGeometry x="1740" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_verify_db" value="Find User by Decoded ID" style="shape=cylinder3;whiteSpace=wrap;html=1;" vertex="1" parent="lane_db">
+      <mxGeometry x="1760" y="40" width="100" height="70" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_sec_ctrl" value="Controller (getCurrentUser / logoutUser)" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_ctrl">
+      <mxGeometry x="1920" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="node_sec_resp" value="Clear Cookies / Update Auth State" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="lane_fe">
+      <mxGeometry x="2100" y="45" width="140" height="60" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge1" edge="1" parent="1" source="node_start" target="node_submit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge2" edge="1" parent="1" source="node_submit" target="node_route" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge3" edge="1" parent="1" source="node_route" target="node_zod" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge4" edge="1" parent="1" source="node_zod" target="node_controller" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge5" edge="1" parent="1" source="node_controller" target="node_check_db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge6" edge="1" parent="1" source="node_check_db" target="node_tokens" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge7" edge="1" parent="1" source="node_tokens" target="node_save_token" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge8" edge="1" parent="1" source="node_save_token" target="node_response" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge9" edge="1" parent="1" source="node_response" target="node_context" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge10" edge="1" parent="1" source="node_context" target="node_sec_req" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge11" edge="1" parent="1" source="node_sec_req" target="node_verify_jwt" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge12" edge="1" parent="1" source="node_verify_jwt" target="node_verify_db" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge13" edge="1" parent="1" source="node_verify_db" target="node_sec_ctrl" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="edge14" edge="1" parent="1" source="node_sec_ctrl" target="node_sec_resp" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>

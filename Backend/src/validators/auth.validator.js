@@ -6,7 +6,7 @@ export const registerSchema = z.object({
   password: z.string().min(6, 'Password must be at least 6 characters'),
   department: z.string().min(2, 'Department is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
-  rollNumber: z.string().optional()
+  rollNumber: z.string()
 });
 
 export const loginSchema = z.object({
