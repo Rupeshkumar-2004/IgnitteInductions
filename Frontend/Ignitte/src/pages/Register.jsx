@@ -1,56 +1,42 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { registerSchema } from '@/lib/validations';
+import { z } from 'zod';
+
+const extendedRegisterSchema = registerSchema.extend({
+  confirmPassword: z.string().min(1, 'Confirm password is required'),
+}).refine((data) => data.password === data.confirmPassword, {
+  path: ['confirmPassword'],
+  message: "Passwords do not match",
+});
 
 const Register = () => {
-  // 1. Added missing state variables
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    department: '',
-    phone: ''
-  });
-  
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const { register } = useAuth();
+  const { register: registerUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
-  };
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(extendedRegisterSchema),
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', department: '', phone: '' }
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: 'Password mismatch',
-        description: 'Passwords do not match.',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+  const onSubmit = async (data) => {
     setIsLoading(true);
 
     try {
-      // 2. Sending ALL required fields to the backend
-      await register(
-        formData.fullName, 
-        formData.email, 
-        formData.password,
-        formData.department,
-        formData.phone
+      await registerUser(
+        data.fullName, 
+        data.email, 
+        data.password,
+        data.department,
+        data.phone
       );
       
       toast({
@@ -59,7 +45,7 @@ const Register = () => {
       });
       navigate('/dashboard');
     } catch (error) {
-      console.error("Registration Error:", error); // Check console for details
+      console.error("Registration Error:", error);
       toast({
         title: 'Registration failed',
         description: error.response?.data?.message || 'Something went wrong. Please try again.',
@@ -71,84 +57,136 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/30 px-4 py-12">
-      <Card className="w-full max-w-md border-border shadow-lg">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <GraduationCap className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl">Create Account</CardTitle>
-          <CardDescription>Join us and start your educational journey</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            {/* Full Name */}
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input id="fullName" value={formData.fullName} onChange={handleChange} required placeholder="Enter your full name" />
-            </div>
-            
-            {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={formData.email} onChange={handleChange} required placeholder="Enter your email" />
+    <div className="bg-background text-on-surface min-h-screen flex flex-col justify-center items-center p-margin-mobile md:p-margin-desktop font-body-md relative overflow-hidden pt-20">
+      {/* Decorative background elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-container rounded-full opacity-5 blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-tertiary rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
+      
+      <div className="w-full max-w-md z-10 py-8">
+        {/* Logo/Brand Anchor */}
+        <div className="text-center mb-8">
+          <h1 className="font-display-lg-mobile md:font-display-lg text-on-surface tracking-tight">
+            Ignitte<span className="text-primary-container">.</span>
+          </h1>
+          <p className="font-body-md text-on-surface-variant mt-2">Create your account</p>
+        </div>
+
+        {/* Registration Card */}
+        <div className="bg-surface-container/30 backdrop-blur-xl border border-outline-variant/30 rounded-2xl p-8 flex flex-col gap-6 shadow-2xl">
+          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="fullName">Full Name</label>
+              <input 
+                id="fullName" 
+                placeholder="John Doe" 
+                {...register("fullName")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              {errors.fullName && <p className="text-xs text-error mt-1">{errors.fullName.message}</p>}
             </div>
 
-            {/* Department (NEW) */}
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              <Input id="department" value={formData.department} onChange={handleChange} required placeholder="e.g. Computer Science" />
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="email">Email Address</label>
+              <input 
+                id="email" 
+                type="email" 
+                placeholder="name@example.com" 
+                {...register("email")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              {errors.email && <p className="text-xs text-error mt-1">{errors.email.message}</p>}
             </div>
 
-            {/* Phone (NEW) */}
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" value={formData.phone} onChange={handleChange} required placeholder="Enter 10-digit number" />
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="department">Department</label>
+              <input 
+                id="department" 
+                placeholder="e.g. Computer Science" 
+                {...register("department")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              {errors.department && <p className="text-xs text-error mt-1">{errors.department.message}</p>}
             </div>
 
-            {/* Password */}
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="phone">Phone Number</label>
+              <input 
+                id="phone" 
+                placeholder="Enter 10-digit number" 
+                {...register("phone")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              {errors.phone && <p className="text-xs text-error mt-1">{errors.phone.message}</p>}
+            </div>
+
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="password">Password</label>
               <div className="relative">
-                <Input 
+                <input 
                   id="password" 
                   type={showPassword ? 'text' : 'password'} 
-                  value={formData.password} 
-                  onChange={handleChange} 
-                  required 
-                  placeholder="Create a password" 
+                  placeholder="••••••••" 
+                  {...register("password")}
+                  className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 pr-12 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
                 />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)} 
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"
+                >
+                  {showPassword ? (
+                    <span className="material-symbols-outlined text-[20px] select-none">visibility_off</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-[20px] select-none">visibility</span>
+                  )}
                 </button>
               </div>
+              {errors.password && <p className="text-xs text-error mt-1">{errors.password.message}</p>}
             </div>
 
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirm Password</Label>
-              <Input 
+            <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="confirmPassword">Confirm Password</label>
+              <input 
                 id="confirmPassword" 
                 type={showPassword ? 'text' : 'password'} 
-                value={formData.confirmPassword} 
-                onChange={handleChange} 
-                required 
-                placeholder="Confirm your password" 
+                placeholder="••••••••" 
+                {...register("confirmPassword")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
+              {errors.confirmPassword && <p className="text-xs text-error mt-1">{errors.confirmPassword.message}</p>}
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Creating account...</> : 'Create Account'}
-            </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              Already have an account? <Link to="/login" className="text-primary hover:underline font-medium">Sign in here</Link>
+
+            <div className="mt-4">
+              <button 
+                type="submit" 
+                disabled={isLoading}
+                className="w-full bg-primary-container text-surface font-label-md text-label-md rounded-xl py-3 px-6 hover:opacity-95 transition-opacity duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin text-surface" />
+                    Creating Account...
+                  </>
+                ) : (
+                  <>
+                    Create Account
+                    <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+
+          <div className="border-t border-outline-variant/20 pt-4 text-center">
+            <p className="font-body-md text-on-surface-variant">
+              Already have an account? 
+              <Link to="/login" className="text-primary hover:text-primary-container transition-colors duration-200 font-label-md text-label-md ml-1">
+                Log in
+              </Link>
             </p>
-          </CardFooter>
-        </form>
-      </Card>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

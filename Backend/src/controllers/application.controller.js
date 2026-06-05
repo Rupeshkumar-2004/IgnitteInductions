@@ -5,12 +5,8 @@ import Application from "../models/Application.model.js";
 
 // 1. Submit an Application
 const submitApplication = asyncHandler(async (req, res) => {
-    // Motivation and skills are required from the frontend form
+    // Motivation and skills are validated by Zod
     const { motivation, skills, previousExperience } = req.body;
-
-    if (!motivation || !skills) {
-        throw new ApiError(400, "Motivation and Skills are required");
-    }
 
     // Check if user already applied
     const existingApplication = await Application.findOne({ user: req.user._id });
@@ -46,11 +42,7 @@ const getMyApplication = asyncHandler(async (req, res) => {
 // 3. Submit a Task (Student)
 const submitTask = asyncHandler(async (req, res) => {
     const { taskId } = req.params;
-    const { submission } = req.body; // The link or text answer
-
-    if (!submission) {
-        throw new ApiError(400, "Submission content is required");
-    }
+    const { submission } = req.body; // Validated by Zod
 
     // Find application by user and specific task
     const application = await Application.findOne({ 

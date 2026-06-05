@@ -5,9 +5,12 @@ import Application from "../models/Application.model.js";
 import User from "../models/User.model.js";
 
 // 1. Get All Applications (Admin only)
+// one updation need to be done here is instead of two fliter getting over ridding
+// use merge..
 const getAllApplications = asyncHandler(async (req, res) => {
     const { status, department, search, page = 1, limit = 10 } = req.query;
 
+    //add filter
     const filter = {};
     if (status) filter.status = status;
 
@@ -79,7 +82,7 @@ const updateApplicationStatus = asyncHandler(async (req, res) => {
             reviewedBy: req.user._id,
             statusUpdatedAt: Date.now()
         },
-        { new: true }
+        { returnDocument: 'after' }
     ).populate('user', 'fullName email');
 
     if (!application) {
@@ -214,7 +217,6 @@ const verifyTask = asyncHandler(async (req, res) => {
         const isOriginalVerifier = task.verifiedBy && task.verifiedBy.toString() === req.user._id.toString();
         
         // Check if the current user is the Super Admin (using email from seedAdmin.js)
-        // I've also added 'admin@inductions' as requested in your prompt
         const isSuperAdmin = [
             'admin@clubinduction.com', 
             'admin@inductions'

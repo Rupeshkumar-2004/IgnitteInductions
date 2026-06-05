@@ -2,7 +2,7 @@ import User from '../models/User.model.js';
 import { ApiError } from '../utils/apiError.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import jwt from 'jsonwebtoken'; // ✅ Correct Import
+import jwt from 'jsonwebtoken';
 
 // HELPER FUNCTION: Generate Access and Refresh Tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -18,28 +18,20 @@ const generateAccessAndRefreshTokens = async (userId) => {
     const refreshToken = await user.generateRefreshToken();
     
     user.refreshToken = refreshToken;
+    //this will just update the value without validating the other parameters
     await user.save({ validateBeforeSave: false });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    console.error('Token generation error:', error); // TEMPORARY LOG
+    console.error('Token generation error:', error);
     throw new ApiError(500, 'Something went wrong while generating tokens');
   }
 };
 
 // REGISTER USER
 export const registerUser = asyncHandler(async (req, res) => {
-  // 1. Get user details from request body
+  // 1. Get user details from request body (already validated by Zod)
   const { fullName, email, password, department, phone, rollNumber } = req.body;
-
-  // 2. Validation - check if required fields are not empty
-  if (
-    [fullName, email, password, department, phone].some(
-      (field) => field?.trim() === ''
-    )
-  ) {
-    throw new ApiError(400, 'All fields are required');
-  }
 
   // 3. Check if user already exists
   const existingUser = await User.findOne({ email });
@@ -100,13 +92,8 @@ export const registerUser = asyncHandler(async (req, res) => {
 
 // LOGIN USER
 export const loginUser = asyncHandler(async (req, res) => {
-  // 1. Get email and password from request body
+  // 1. Get email and password from request body (already validated by Zod)
   const { email, password } = req.body;
-
-  // 2. Validation
-  if (!email || !password) {
-    throw new ApiError(400, 'Email and password are required');
-  }
 
   // 3. Find user by email
   const user = await User.findOne({ email });
@@ -163,7 +150,7 @@ export const logoutUser = asyncHandler(async (req, res) => {
     {
       $set: { refreshToken: null }
     },
-    { new: true }
+    { returnDocument: 'after' }
   );
 
   const options = {

@@ -1,16 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { GraduationCap, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { loginSchema } from '@/lib/validations';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
@@ -18,50 +15,27 @@ const Login = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' }
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const onSubmit = async (data) => {
     setIsLoading(true);
-
     try {
-      // 1. Wait for login to complete
-      // In Login.jsx handleSubmit:
+      const user = await login(data.email, data.password);
 
-      const user = await login(email, password); // Capture the returned user
-
-      if (user.role === 'admin') {
-          navigate("/admin/dashboard", { replace: true });
-      } else {
-          navigate("/dashboard", { replace: true });
-      }
-      
-      // 2. Get the role from the stored user data (or from the login response if modified)
-      // We can peek at localStorage or trust the state update will happen
-      // Ideally, login() should return the user object to make this clean.
-      
-      // For now, let's fetch the user directly after login to decide where to go
-      const storedData = localStorage.getItem('accessToken'); 
-      // Note: This is a quick check. A better way is if login() returns the user object.
-      
-      // IMPROVED LOGIC:
-      // Let's assume your login() in AuthContext now returns the user object (as we fixed it previously).
-      // If not, we can infer the role based on the email for this specific admin
-      
       toast({
         title: 'Welcome back!',
         description: 'You have successfully logged in.',
       });
 
-      // 3. Conditional Navigation
-      if (email === "admin@clubinduction.com") {
-          navigate("/admin/dashboard", { replace: true });
+      if (user.role === 'admin') {
+        navigate("/admin/dashboard", { replace: true });
       } else {
-          // Default to student dashboard
-          const from = location.state?.from?.pathname || '/dashboard';
-          navigate(from, { replace: true });
+        const from = location.state?.from?.pathname || '/dashboard';
+        navigate(from, { replace: true });
       }
-
     } catch (error) {
       console.error(error);
       toast({
@@ -75,71 +49,107 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-accent/30 px-4 py-12">
-      <Card className="w-full max-w-md border-border shadow-lg">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <GraduationCap className="h-8 w-8 text-primary" />
-            </div>
-          </div>
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>Sign in to your account to continue</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
+    <div className="min-h-screen flex items-center justify-center font-body-md p-margin-mobile md:p-margin-desktop bg-background relative overflow-hidden">
+      {/* Ambient Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-primary-container/5 blur-[120px]"></div>
+        <div className="absolute bottom-[-20%] right-[-10%] w-[40%] h-[40%] rounded-full bg-primary-container/5 blur-[100px]"></div>
+      </div>
+
+      {/* Login Container */}
+      <main className="w-full max-w-md bg-surface-container/30 backdrop-blur-xl border border-outline-variant/30 rounded-2xl shadow-2xl p-8 relative z-10">
+        {/* Brand Header */}
+        <div className="text-center mb-8">
+          <h1 className="font-headline-md text-headline-md font-bold text-primary tracking-tight">Ignitte</h1>
+          <p className="font-body-md text-body-md text-on-surface-variant mt-1">Sign in to your workspace</p>
+        </div>
+
+        {/* Login Form */}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Email Field */}
+          <div className="space-y-2">
+            <label className="block font-label-md text-label-md text-on-surface" htmlFor="email">Email Address</label>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">
+                mail
+              </span>
+              <input
                 id="email"
                 type="email"
                 placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
+                {...register("email")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-3 pl-12 pr-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
+            {errors.email && <p className="text-sm text-error mt-1">{errors.email.message}</p>}
+          </div>
+
+          {/* Password Field */}
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <label className="block font-label-md text-label-md text-on-surface" htmlFor="password">Password</label>
+              <Link to="#" className="font-label-md text-label-md text-primary hover:text-primary-fixed transition-colors duration-200">
+                Forgot Password?
+              </Link>
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col gap-4">
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">
+                lock
+              </span>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="Enter your password"
+                {...register("password")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-3 pl-12 pr-12 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface focus:outline-none"
+              >
+                {showPassword ? (
+                  <span className="material-symbols-outlined text-[20px] select-none">visibility_off</span>
+                ) : (
+                  <span className="material-symbols-outlined text-[20px] select-none">visibility</span>
+                )}
+              </button>
+            </div>
+            {errors.password && <p className="text-sm text-error mt-1">{errors.password.message}</p>}
+          </div>
+
+          {/* Sign In Action */}
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-primary-container text-surface font-label-md text-label-md rounded-xl py-3 px-6 hover:opacity-95 transition-opacity duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               {isLoading ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  <Loader2 className="h-4 w-4 animate-spin text-surface" />
+                  Signing In...
                 </>
               ) : (
-                'Sign In'
+                <>
+                  Sign In
+                  <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </>
               )}
-            </Button>
-            <p className="text-sm text-muted-foreground text-center">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-primary hover:underline font-medium">
-                Register here
-              </Link>
-            </p>
-          </CardFooter>
+            </button>
+          </div>
         </form>
-      </Card>
+
+        {/* Registration Link */}
+        <div className="mt-8 text-center border-t border-outline-variant/20 pt-6">
+          <p className="font-body-md text-body-md text-on-surface-variant">
+            New to Ignitte?
+            <Link to="/register" className="text-primary hover:text-primary-fixed transition-colors duration-200 font-label-md text-label-md ml-1">
+              Register
+            </Link>
+          </p>
+        </div>
+      </main>
     </div>
   );
 };

@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Menu, X, GraduationCap, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/hooks/useAuth';
+import { Menu, X, LogOut } from 'lucide-react';
+import { NavLink } from './Navlink';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,134 +27,155 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/60 border-b border-border">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-bold text-foreground">IgnitteInductions</span>
-          </Link>
+    <nav className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding h-16 bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 shadow-none font-body-md text-body-md">
+      {/* Logo */}
+      <Link to="/" className="font-headline-md text-headline-md font-bold text-primary-container hover:opacity-90 transition-opacity">
+        Ignitte
+      </Link>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-foreground/80 hover:text-foreground transition-colors">
-              Home
-            </Link>
-            <Link to="/about" className="text-foreground/80 hover:text-foreground transition-colors">
-              About
-            </Link>
-            
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="gap-2">
-                    <User className="h-4 w-4" />
-                    {user?.name}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link to={getDashboardLink()} className="cursor-pointer">
-                      Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  {user?.role === 'student' && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/apply" className="cursor-pointer">
-                        Apply Now
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-destructive">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Logout
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Button variant="ghost" asChild>
-                  <Link to="/login">Login</Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/register">Register</Link>
-                </Button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="md:hidden p-2 rounded-lg text-foreground hover:bg-muted transition-colors"
+      {/* Desktop Navigation */}
+      <ul className="hidden md:flex gap-stack-lg items-center">
+        <li>
+          <NavLink
+            to="/"
+            className="font-label-md text-label-md hover:text-primary-container transition-colors duration-200 block text-on-surface-variant"
+            activeClassName="text-primary-container font-bold border-b-2 border-primary-container pb-1"
           >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
+            Home
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={isAuthenticated ? "/apply" : "/login"}
+            className="font-label-md text-label-md hover:text-primary-container transition-colors duration-200 block text-on-surface-variant"
+            activeClassName="text-primary-container font-bold border-b-2 border-primary-container pb-1"
+          >
+            Apply
+          </NavLink>
+        </li>
+        <li>
+          <NavLink
+            to={isAuthenticated ? getDashboardLink() : "/login"}
+            className="font-label-md text-label-md hover:text-primary-container transition-colors duration-200 block text-on-surface-variant"
+            activeClassName="text-primary-container font-bold border-b-2 border-primary-container pb-1"
+          >
+            Dashboard
+          </NavLink>
+        </li>
+      </ul>
 
-        {/* Mobile Navigation */}
-        {isOpen && (
-          <div className="md:hidden py-4 border-t border-border">
-            <div className="flex flex-col gap-3">
-              <Link
-                to="/"
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-foreground/80 hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                Home
-              </Link>
-              <Link
-                to="/about"
-                onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-foreground/80 hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-              >
-                About
-              </Link>
-              
-              {isAuthenticated ? (
-                <>
-                  <Link
-                    to={getDashboardLink()}
-                    onClick={() => setIsOpen(false)}
-                    className="px-4 py-2 text-foreground/80 hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                  >
-                    Dashboard
+      {/* Action / Profile Buttons */}
+      <div className="flex items-center gap-stack-md">
+        {isAuthenticated ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="text-on-surface-variant hover:text-primary-container transition-colors duration-200 flex items-center justify-center p-stack-sm cursor-pointer outline-none">
+                <span className="material-symbols-outlined select-none text-[28px]">account_circle</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-surface-container border border-outline-variant/30 rounded-xl p-2 shadow-xl">
+              <div className="px-3 py-2 text-xs text-on-surface-variant border-b border-outline-variant/20 mb-1">
+                Signed in as <span className="font-bold text-on-surface">{user?.name}</span>
+              </div>
+              <DropdownMenuItem asChild>
+                <Link to={getDashboardLink()} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-variant hover:text-primary-container transition-colors cursor-pointer">
+                  <span className="material-symbols-outlined text-[18px]">dashboard</span>
+                  Dashboard
+                </Link>
+              </DropdownMenuItem>
+              {user?.role === 'student' && (
+                <DropdownMenuItem asChild>
+                  <Link to="/apply" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-on-surface hover:bg-surface-variant hover:text-primary-container transition-colors cursor-pointer">
+                    <span className="material-symbols-outlined text-[18px]">assignment</span>
+                    Apply Now
                   </Link>
-                  {user?.role === 'student' && (
-                    <Link
-                      to="/apply"
-                      onClick={() => setIsOpen(false)}
-                      className="px-4 py-2 text-foreground/80 hover:text-foreground hover:bg-muted rounded-lg transition-colors"
-                    >
-                      Apply Now
-                    </Link>
-                  )}
-                  <button
-                    onClick={() => {
-                      setIsOpen(false);
-                      handleLogout();
-                    }}
-                    className="px-4 py-2 text-left text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-col gap-2 px-4 pt-2">
-                  <Button variant="outline" asChild className="w-full">
-                    <Link to="/login" onClick={() => setIsOpen(false)}>Login</Link>
-                  </Button>
-                  <Button asChild className="w-full">
-                    <Link to="/register" onClick={() => setIsOpen(false)}>Register</Link>
-                  </Button>
-                </div>
+                </DropdownMenuItem>
               )}
-            </div>
+              <DropdownMenuSeparator className="bg-outline-variant/20 my-1" />
+              <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-error hover:bg-error-container/20 transition-colors cursor-pointer">
+                <LogOut className="h-4 w-4" />
+                Logout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link to="/login" className="text-on-surface-variant hover:text-primary-container text-sm font-label-md px-3 py-1.5 transition-colors">
+              Login
+            </Link>
+            <Link to="/register" className="bg-primary-container text-surface font-label-md text-label-md px-5 py-2 rounded-full hover:opacity-90 transition-opacity">
+              Join Now
+            </Link>
           </div>
         )}
+
+        {/* Mobile menu trigger */}
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="md:hidden p-2 text-on-surface hover:text-primary-container transition-colors"
+        >
+          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
       </div>
+
+      {/* Mobile Menu Panel */}
+      {isOpen && (
+        <div className="absolute top-16 left-0 w-full bg-surface/95 backdrop-blur-md border-b border-outline-variant/30 flex flex-col p-4 gap-3 md:hidden z-40">
+          <NavLink
+            to="/"
+            onClick={() => setIsOpen(false)}
+            className="px-4 py-2 hover:bg-surface-variant rounded-lg transition-colors text-sm font-label-md text-on-surface block"
+            activeClassName="text-primary-container font-bold"
+          >
+            Home
+          </NavLink>
+          <NavLink
+            to={isAuthenticated ? "/apply" : "/login"}
+            onClick={() => setIsOpen(false)}
+            className="px-4 py-2 hover:bg-surface-variant rounded-lg transition-colors text-sm font-label-md text-on-surface block"
+            activeClassName="text-primary-container font-bold"
+          >
+            Apply
+          </NavLink>
+          <NavLink
+            to={isAuthenticated ? getDashboardLink() : "/login"}
+            onClick={() => setIsOpen(false)}
+            className="px-4 py-2 hover:bg-surface-variant rounded-lg transition-colors text-sm font-label-md text-on-surface block"
+            activeClassName="text-primary-container font-bold"
+          >
+            Dashboard
+          </NavLink>
+          {isAuthenticated ? (
+            <button
+              onClick={() => {
+                setIsOpen(false);
+                handleLogout();
+              }}
+              className="px-4 py-2 text-left text-error hover:bg-error-container/20 rounded-lg transition-colors text-sm font-label-md flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          ) : (
+            <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/20">
+              <Link
+                to="/login"
+                onClick={() => setIsOpen(false)}
+                className="w-full text-center py-2 bg-transparent border border-outline text-on-surface font-label-md text-label-md rounded-full hover:bg-surface-variant transition-colors"
+              >
+                Login
+              </Link>
+              <Link
+                to="/register"
+                onClick={() => setIsOpen(false)}
+                className="w-full text-center py-2 bg-primary-container text-surface font-label-md text-label-md rounded-full hover:opacity-90 transition-opacity"
+              >
+                Join Now
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
     </nav>
   );
 };
