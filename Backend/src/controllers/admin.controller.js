@@ -257,6 +257,43 @@ const verifyTask = asyncHandler(async (req, res) => {
     );
 });
 
+// 9. Get Team Members
+const getTeamMembers = asyncHandler(async (req, res) => {
+    const teamMembers = await User.find({ role: { $in: ['admin', 'interviewer'] } })
+        .select('-password -refreshToken')
+        .sort({ createdAt: -1 });
+
+    return res.status(200).json(
+        new ApiResponse(200, teamMembers, "Team members fetched successfully")
+    );
+});
+
+// 10. Remove Team Member
+const removeTeamMember = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    // Prevent admin from deleting themselves
+    if (req.user._id.toString() === id) {
+        throw new ApiError(400, "You cannot remove your own account");
+    }
+
+    const member = await User.findById(id);
+
+    if (!member) {
+        throw new ApiError(404, "User not found");
+    }
+
+    if (!['admin', 'interviewer'].includes(member.role)) {
+        throw new ApiError(400, "User is not a team member");
+    }
+
+    await User.findByIdAndDelete(id);
+
+    return res.status(200).json(
+        new ApiResponse(200, {}, "Team member removed successfully")
+    );
+});
+
 export {
     getAllApplications,
     updateApplicationStatus,
@@ -265,5 +302,7 @@ export {
     deleteApplication,
     assignTask,
     createTeamMember,
-    verifyTask
+    verifyTask,
+    getTeamMembers,
+    removeTeamMember
 };

@@ -112,6 +112,10 @@ export const loginUser = asyncHandler(async (req, res) => {
     user._id
   );
 
+  // Update lastLogin
+  user.lastLogin = new Date();
+  await user.save({ validateBeforeSave: false });
+
   // 6. Get user without password
   const loggedInUser = await User.findById(user._id).select(
     '-password -refreshToken'

@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMyApplication, useSubmitTask } from '@/hooks/useApplicationQueries';
 
 const StudentDashboard = () => {
+
   const { user } = useAuth();
   const [submissionLinks, setSubmissionLinks] = useState({});
   const [submittingId, setSubmittingId] = useState(null);
@@ -31,7 +32,7 @@ const StudentDashboard = () => {
       });
       return;
     }
-    
+
     setSubmittingId(taskId);
     submitTaskMutation.mutate(
       { taskId, link },
@@ -85,24 +86,24 @@ const StudentDashboard = () => {
   // Determine active timeline steps
   const steps = [
     { key: 'applied', label: 'Applied', icon: 'check', done: true },
-    { 
-      key: 'demo', 
-      label: 'Teaching Demo / Task', 
-      icon: 'school', 
+    {
+      key: 'demo',
+      label: 'Teaching Demo / Task',
+      icon: 'school',
       done: application.status !== 'pending',
       active: application.status === 'under-review' || (application.tasks && application.tasks.length > 0)
     },
-    { 
-      key: 'pi', 
-      label: 'Multiple PI Rounds', 
-      icon: 'forum', 
+    {
+      key: 'pi',
+      label: 'Multiple PI Rounds',
+      icon: 'forum',
       done: application.status === 'accepted' || application.status === 'rejected',
       active: application.currentRound === 'Multiple PI Rounds'
     },
-    { 
-      key: 'decision', 
-      label: 'Decision', 
-      icon: 'flag', 
+    {
+      key: 'decision',
+      label: 'Decision',
+      icon: 'flag',
       done: application.status === 'accepted' || application.status === 'rejected',
       active: application.status === 'accepted' || application.status === 'rejected'
     }
@@ -145,17 +146,16 @@ const StudentDashboard = () => {
               <div className="relative flex flex-col md:flex-row justify-between items-start md:items-center gap-6 md:gap-2">
                 {/* Horizontal line for desktop, vertical for mobile */}
                 <div className="hidden md:block absolute left-0 right-0 top-1/2 -translate-y-1/2 h-0.5 bg-outline-variant/20 -z-10"></div>
-                
+
                 {steps.map((step, idx) => {
                   const isCompleted = step.done;
                   const isActive = step.active && !isCompleted;
                   return (
                     <div key={step.key} className={`relative z-10 flex md:flex-col items-center gap-4 md:gap-2 ${!isCompleted && !isActive ? 'opacity-40' : ''}`}>
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-surface transition-all duration-300 ${
-                        isCompleted ? 'bg-green-500 text-surface' :
-                        isActive ? 'bg-primary-container ring-4 ring-primary-container/20' :
-                        'bg-surface-container border border-outline-variant/30 text-on-surface-variant'
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-surface transition-all duration-300 ${isCompleted ? 'bg-green-500 text-surface' :
+                          isActive ? 'bg-primary-container ring-4 ring-primary-container/20' :
+                            'bg-surface-container border border-outline-variant/30 text-on-surface-variant'
+                        }`}>
                         <span className="material-symbols-outlined text-[20px]">
                           {isCompleted ? 'check' : step.icon}
                         </span>
@@ -188,22 +188,20 @@ const StudentDashboard = () => {
               ) : (
                 <div className="space-y-6">
                   {application.tasks.map((task) => (
-                    <div 
-                      key={task._id} 
-                      className={`bg-surface-container/20 backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300 ${
-                        task.status === 'pending' ? 'border-primary-container/45' : 'border-outline-variant/20'
-                      }`}
+                    <div
+                      key={task._id}
+                      className={`bg-surface-container/20 backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300 ${task.status === 'pending' ? 'border-primary-container/45' : 'border-outline-variant/20'
+                        }`}
                     >
                       <div className="flex justify-between items-start gap-4 mb-4">
                         <div>
                           <h3 className="font-headline-md text-[20px] font-bold mb-1">{task.title}</h3>
                           <p className="font-body-md text-on-surface-variant">{task.description}</p>
                         </div>
-                        <span className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm border capitalize ${
-                          task.status === 'pending' 
-                            ? 'bg-primary-container/10 border-primary-container/30 text-primary-container' 
+                        <span className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm border capitalize ${task.status === 'pending'
+                            ? 'bg-primary-container/10 border-primary-container/30 text-primary-container'
                             : 'bg-green-500/10 border-green-500/30 text-green-400'
-                        }`}>
+                          }`}>
                           {task.status.replace('-', ' ')}
                         </span>
                       </div>
@@ -252,10 +250,10 @@ const StudentDashboard = () => {
                       ) : (
                         <div className="bg-surface-container-lowest/50 border border-outline-variant/20 rounded-xl p-4 mt-2">
                           <p className="font-label-md text-label-md text-on-surface-variant mb-1">Your Submission:</p>
-                          <a 
-                            href={task.studentSubmission} 
-                            target="_blank" 
-                            rel="noreferrer" 
+                          <a
+                            href={task.studentSubmission}
+                            target="_blank"
+                            rel="noreferrer"
                             className="text-primary hover:underline font-body-md break-all flex items-center gap-1.5"
                           >
                             <span className="material-symbols-outlined text-[18px]">open_in_new</span>
@@ -277,7 +275,7 @@ const StudentDashboard = () => {
                 <span className="material-symbols-outlined text-primary-container text-[24px]">reviews</span>
                 Feedback Panel
               </h2>
-              
+
               {feedbackTasks.length === 0 ? (
                 <div className="flex-grow flex flex-col justify-center items-center text-center py-12">
                   <span className="material-symbols-outlined text-4xl mb-4 text-on-surface-variant/40">

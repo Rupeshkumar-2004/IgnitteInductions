@@ -1,6 +1,9 @@
+// Toaster component to display toast notifications
 import { Toaster } from "@/components/ui/toaster";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+// Authentication context provider
 import { AuthProvider } from "./context/AuthContext";
+// Protected route component
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Pages

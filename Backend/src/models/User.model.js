@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['student', 'admin'],
+      enum: ['student', 'admin', 'interviewer'],
       default: 'student'
     },
     department: {
@@ -54,6 +54,10 @@ const userSchema = new mongoose.Schema(
     refreshToken: {
       type: String,
       default: null
+    },
+    lastLogin: {
+      type: Date,
+      default: null
     }
   },
   {
@@ -76,7 +80,7 @@ userSchema.pre('save', async function () {
 });
 
 // METHOD: Compare password for login
-userSchema.methods.comparePassword =async function (candidatePassword) {
+userSchema.methods.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
 

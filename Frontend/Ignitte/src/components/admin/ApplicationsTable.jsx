@@ -2,6 +2,7 @@ import { useUpdateApplicationStatus } from '@/hooks/useAdminQueries';
 import { useToast } from '@/hooks/use-toast';
 
 const getStatusBadge = (status) => {
+
   const styles = {
     approved: "bg-green-500/10 border-green-500/30 text-green-400",
     accepted: "bg-green-500/10 border-green-500/30 text-green-400",
@@ -9,13 +10,13 @@ const getStatusBadge = (status) => {
     pending: "bg-primary-container/10 border-primary-container/30 text-primary-container",
     "under-review": "bg-tertiary/10 border-tertiary/30 text-tertiary"
   };
+
   return (
     <span className={`inline-flex items-center gap-1.5 py-1 px-3 rounded-full font-label-sm text-label-sm border capitalize ${styles[status] || "bg-surface-variant border-outline-variant/30 text-on-surface-variant"}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${
-        status === 'accepted' || status === 'approved' ? 'bg-green-400' :
-        status === 'rejected' ? 'bg-error' :
-        status === 'pending' ? 'bg-primary-container' : 'bg-tertiary'
-      }`}></span>
+      <span className={`w-1.5 h-1.5 rounded-full ${status === 'accepted' || status === 'approved' ? 'bg-green-400' :
+          status === 'rejected' ? 'bg-error' :
+            status === 'pending' ? 'bg-primary-container' : 'bg-tertiary'
+        }`}></span>
       {status.replace('-', ' ')}
     </span>
   );
@@ -47,7 +48,7 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Candidate Name</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Course</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
-            <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tasks</th> 
+            <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tasks</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
           </tr>
         </thead>
@@ -69,11 +70,11 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
               <td className="py-4 px-6">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary-container/10 border border-primary-container/20 text-primary-container flex items-center justify-center font-label-md text-label-md font-bold">
-                    {app.user?.fullName?.substring(0, 2).toUpperCase() || 'ST'}
+                    {app.user?.fullName?.substring(0, 2)?.toUpperCase() || 'ST'}
                   </div>
                   <div>
-                    <div className="font-body-md text-body-md text-on-surface font-semibold">{app.user?.fullName}</div>
-                    <div className="text-xs text-on-surface-variant">{app.user?.email}</div>
+                    <div className="font-body-md text-body-md text-on-surface font-semibold">{app.user?.fullName || 'Deleted User'}</div>
+                    <div className="text-xs text-on-surface-variant">{app.user?.email || 'N/A'}</div>
                   </div>
                 </div>
               </td>
@@ -86,24 +87,24 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
               </td>
               <td className="py-4 px-6 text-right">
                 <div className="flex justify-end items-center gap-3">
-                  <button 
+                  <button
                     onClick={() => openViewTasksDialog(app)}
                     title="View Tasks"
                     className="p-2 text-on-surface-variant hover:text-primary-container rounded-lg hover:bg-surface-container-lowest/50 border border-transparent hover:border-outline-variant/30 transition-all flex items-center justify-center cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[20px]">visibility</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => openAssignTaskDialog(app)}
                     className="px-4 py-2 border border-outline-variant/30 rounded-lg text-on-surface font-label-sm text-label-sm hover:border-primary-container hover:text-primary-container transition-all flex items-center gap-1.5 cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[16px]">add_circle</span>
                     Task
                   </button>
-                  
+
                   <div className="relative">
-                    <select 
-                      value={app.status} 
+                    <select
+                      value={app.status}
                       onChange={(e) => handleStatusUpdate(app._id, e.target.value)}
                       className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg pl-3 pr-8 py-2 font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all appearance-none cursor-pointer"
                     >

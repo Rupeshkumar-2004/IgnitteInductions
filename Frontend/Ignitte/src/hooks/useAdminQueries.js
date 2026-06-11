@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminAPI } from '../utils/api';
 
+// custom hook for getting the admin stats
+// useQuery is a hook that is used to fetch the data from the server
+// queryKey is a unique key for the query
+// queryFn is a function that will fetch the data from the server
 export const useAdminStats = () => {
     return useQuery({
         queryKey: ['adminStats'],
@@ -53,7 +57,31 @@ export const useVerifyTask = () => {
 };
 
 export const useCreateTeamMember = () => {
+    const queryClient = useQueryClient();
     return useMutation({
         mutationFn: (data) => adminAPI.createTeamMember(data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+        }
+    });
+};
+
+export const useTeamMembers = () => {
+    return useQuery({
+        queryKey: ['teamMembers'],
+        queryFn: async () => {
+            const { data } = await adminAPI.getTeamMembers();
+            return data.data;
+        }
+    });
+};
+
+export const useRemoveTeamMember = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (id) => adminAPI.removeTeamMember(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['teamMembers'] });
+        }
     });
 };

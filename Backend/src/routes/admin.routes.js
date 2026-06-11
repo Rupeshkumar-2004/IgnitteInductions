@@ -7,7 +7,9 @@ import {
     deleteApplication,
     assignTask,
     createTeamMember,
-    verifyTask 
+    verifyTask,
+    getTeamMembers,
+    removeTeamMember
 } from "../controllers/admin.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { verifyAdmin } from "../middlewares/admin.middleware.js";
@@ -25,6 +27,8 @@ router.route("/applications/:applicationId").delete(deleteApplication); // DELET
 router.route("/dashboard/stats").get(getDashboardStats); // GET /api/v1/admin/dashboard/stats
 router.route("/applications/:applicationId/task").post(assignTask); // POST /api/v1/admin/applications/:id/task
 router.route("/team/create").post(createTeamMember);
+router.route("/team").get(getTeamMembers);
+router.route("/team/:id").delete(removeTeamMember);
 router.route("/applications/:applicationId/tasks/:taskId").patch(verifyTask);
 
 export default router;

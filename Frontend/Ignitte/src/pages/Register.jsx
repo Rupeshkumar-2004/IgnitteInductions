@@ -24,7 +24,7 @@ const Register = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: zodResolver(extendedRegisterSchema),
-    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', department: '', phone: '' }
+    defaultValues: { fullName: '', email: '', password: '', confirmPassword: '', department: '', phone: '', rollNumber: '' }
   });
 
   const onSubmit = async (data) => {
@@ -32,13 +32,14 @@ const Register = () => {
 
     try {
       await registerUser(
-        data.fullName, 
-        data.email, 
+        data.fullName,
+        data.email,
         data.password,
         data.department,
-        data.phone
+        data.phone,
+        data.rollNumber
       );
-      
+
       toast({
         title: 'Welcome!',
         description: 'Your account has been created successfully.',
@@ -61,12 +62,12 @@ const Register = () => {
       {/* Decorative background elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-container rounded-full opacity-5 blur-[120px] pointer-events-none"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-tertiary rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
-      
+
       <div className="w-full max-w-md z-10 py-8">
         {/* Logo/Brand Anchor */}
         <div className="text-center mb-8">
           <h1 className="font-display-lg-mobile md:font-display-lg text-on-surface tracking-tight">
-            Ignitte<span className="text-primary-container">.</span>
+            IgnitteInductions<span className="text-primary-container">.</span>
           </h1>
           <p className="font-body-md text-on-surface-variant mt-2">Create your account</p>
         </div>
@@ -76,9 +77,9 @@ const Register = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="fullName">Full Name</label>
-              <input 
-                id="fullName" 
-                placeholder="John Doe" 
+              <input
+                id="fullName"
+                placeholder="John Doe"
                 {...register("fullName")}
                 className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
@@ -87,10 +88,10 @@ const Register = () => {
 
             <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="email">Email Address</label>
-              <input 
-                id="email" 
-                type="email" 
-                placeholder="name@example.com" 
+              <input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
                 {...register("email")}
                 className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
@@ -99,9 +100,9 @@ const Register = () => {
 
             <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="department">Department</label>
-              <input 
-                id="department" 
-                placeholder="e.g. Computer Science" 
+              <input
+                id="department"
+                placeholder="e.g. Computer Science"
                 {...register("department")}
                 className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
@@ -109,10 +110,21 @@ const Register = () => {
             </div>
 
             <div>
+              <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="rollNumber">Roll Number (Optional)</label>
+              <input
+                id="rollNumber"
+                placeholder="e.g. 106121000"
+                {...register("rollNumber")}
+                className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
+              />
+              {errors.rollNumber && <p className="text-xs text-error mt-1">{errors.rollNumber.message}</p>}
+            </div>
+
+            <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="phone">Phone Number</label>
-              <input 
-                id="phone" 
-                placeholder="Enter 10-digit number" 
+              <input
+                id="phone"
+                placeholder="Enter 10-digit number"
                 {...register("phone")}
                 className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
@@ -122,16 +134,16 @@ const Register = () => {
             <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="password">Password</label>
               <div className="relative">
-                <input 
-                  id="password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="••••••••" 
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
                   {...register("password")}
                   className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 pr-12 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 flex items-center pr-3 text-on-surface-variant hover:text-on-surface transition-colors focus:outline-none"
                 >
                   {showPassword ? (
@@ -146,10 +158,10 @@ const Register = () => {
 
             <div>
               <label className="block font-label-md text-on-surface-variant mb-1" htmlFor="confirmPassword">Confirm Password</label>
-              <input 
-                id="confirmPassword" 
-                type={showPassword ? 'text' : 'password'} 
-                placeholder="••••••••" 
+              <input
+                id="confirmPassword"
+                type={showPassword ? 'text' : 'password'}
+                placeholder="••••••••"
                 {...register("confirmPassword")}
                 className="w-full bg-surface-container/50 border border-outline-variant/30 rounded-xl py-2.5 px-4 text-on-surface placeholder-on-surface-variant/50 focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-colors duration-200"
               />
@@ -157,8 +169,8 @@ const Register = () => {
             </div>
 
             <div className="mt-4">
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 disabled={isLoading}
                 className="w-full bg-primary-container text-surface font-label-md text-label-md rounded-xl py-3 px-6 hover:opacity-95 transition-opacity duration-200 flex justify-center items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -179,7 +191,7 @@ const Register = () => {
 
           <div className="border-t border-outline-variant/20 pt-4 text-center">
             <p className="font-body-md text-on-surface-variant">
-              Already have an account? 
+              Already have an account?
               <Link to="/login" className="text-primary hover:text-primary-container transition-colors duration-200 font-label-md text-label-md ml-1">
                 Log in
               </Link>

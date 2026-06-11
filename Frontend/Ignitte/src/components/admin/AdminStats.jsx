@@ -1,9 +1,14 @@
 import { useAdminStats } from '@/hooks/useAdminQueries';
 
 const AdminStats = () => {
+  // use adminStats query to fetch the stats of the admin
+  // this query is used to display the stats of the admin
+  // stats are: total applicants, pending demos, accepted candidates, rejected screening
   const { data: stats, isLoading } = useAdminStats();
 
+
   const defaultStats = { total: 0, pending: 0, underReview: 0, accepted: 0, rejected: 0 };
+  // if stats is not loaded then show default stats
   const currentStats = stats || defaultStats;
 
   const statItems = [
@@ -26,8 +31,8 @@ const AdminStats = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       {statItems.map((stat, i) => (
-        <div 
-          key={i} 
+        <div
+          key={i}
           className="bg-surface-container/20 backdrop-blur-xl border border-outline-variant/20 rounded-2xl p-6 flex flex-col relative overflow-hidden shadow-lg"
         >
           <div className="flex justify-between items-start mb-4">

@@ -9,21 +9,26 @@ import AssignTaskDialog from '@/components/admin/AssignTaskDialog';
 import ViewTasksDialog from '@/components/admin/ViewTasksDialog';
 
 const AdminDashboard = () => {
+  // get the user from the useAuth hook
   const { user } = useAuth();
+  // active tab state
   const [activeTab, setActiveTab] = useState('applications');
+  // search term state
   const [searchTerm, setSearchTerm] = useState('');
+  // status filter state
   const [statusFilter, setStatusFilter] = useState('all');
+  // page state
   const [page, setPage] = useState(1);
-  
+
   // Dialog States
   const [isTaskDialogOpen, setIsTaskDialogOpen] = useState(false);
   const [isViewTasksOpen, setIsViewTasksOpen] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  
+
   // Fetch Applications via React Query
   const { data: applications, isLoading } = useApplications({
-    page, 
-    limit: 10, 
+    page,
+    limit: 10,
     search: searchTerm,
     status: statusFilter !== 'all' ? statusFilter : undefined
   });
@@ -46,7 +51,7 @@ const AdminDashboard = () => {
       <div className="absolute bottom-[-10%] right-[-10%] w-[30%] h-[30%] bg-tertiary rounded-full opacity-5 blur-[100px] pointer-events-none"></div>
 
       <div className="max-w-7xl mx-auto px-6 md:px-12 space-y-8">
-        
+
         {/* Header Section */}
         <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
           <div>
@@ -67,11 +72,10 @@ const AdminDashboard = () => {
         <div className="flex border-b border-outline-variant/20 gap-8">
           <button
             onClick={() => setActiveTab('applications')}
-            className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${
-              activeTab === 'applications' 
-                ? 'text-primary-container font-semibold' 
+            className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${activeTab === 'applications'
+                ? 'text-primary-container font-semibold'
                 : 'text-on-surface-variant hover:text-on-surface'
-            }`}
+              }`}
           >
             Applications
             {activeTab === 'applications' && (
@@ -80,11 +84,10 @@ const AdminDashboard = () => {
           </button>
           <button
             onClick={() => setActiveTab('team')}
-            className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${
-              activeTab === 'team' 
-                ? 'text-primary-container font-semibold' 
+            className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${activeTab === 'team'
+                ? 'text-primary-container font-semibold'
                 : 'text-on-surface-variant hover:text-on-surface'
-            }`}
+              }`}
           >
             Manage Team
             {activeTab === 'team' && (
@@ -105,18 +108,18 @@ const AdminDashboard = () => {
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
                   search
                 </span>
-                <input 
+                <input
                   type="text"
-                  placeholder="Search by name or email..." 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
+                  placeholder="Search by name or email..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl pl-10 pr-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 />
               </div>
 
               <div className="relative w-full md:w-[180px]">
-                <select 
-                  value={statusFilter} 
+                <select
+                  value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all appearance-none cursor-pointer"
                 >
@@ -135,8 +138,8 @@ const AdminDashboard = () => {
             {/* Applications Table Card */}
             <div className="bg-surface-container/20 backdrop-blur-xl border border-outline-variant/20 rounded-2xl p-6 shadow-xl overflow-hidden">
               <h2 className="font-headline-md text-headline-md mb-6">Application Roster</h2>
-              <ApplicationsTable 
-                applications={applications} 
+              <ApplicationsTable
+                applications={applications}
                 isLoading={isLoading}
                 openAssignTaskDialog={openAssignTaskDialog}
                 openViewTasksDialog={openViewTasksDialog}
@@ -154,15 +157,15 @@ const AdminDashboard = () => {
 
       {selectedStudent && (
         <>
-          <AssignTaskDialog 
-            isOpen={isTaskDialogOpen} 
-            onOpenChange={setIsTaskDialogOpen} 
-            studentApp={selectedStudent} 
+          <AssignTaskDialog
+            isOpen={isTaskDialogOpen}
+            onOpenChange={setIsTaskDialogOpen}
+            studentApp={selectedStudent}
           />
-          <ViewTasksDialog 
-            isOpen={isViewTasksOpen} 
-            onOpenChange={setIsViewTasksOpen} 
-            studentApp={selectedStudent} 
+          <ViewTasksDialog
+            isOpen={isViewTasksOpen}
+            onOpenChange={setIsViewTasksOpen}
+            studentApp={selectedStudent}
           />
         </>
       )}
