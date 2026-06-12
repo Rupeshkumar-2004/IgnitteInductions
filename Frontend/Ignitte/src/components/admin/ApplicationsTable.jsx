@@ -14,8 +14,8 @@ const getStatusBadge = (status) => {
   return (
     <span className={`inline-flex items-center gap-1.5 py-1 px-3 rounded-full font-label-sm text-label-sm border capitalize ${styles[status] || "bg-surface-variant border-outline-variant/30 text-on-surface-variant"}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${status === 'accepted' || status === 'approved' ? 'bg-green-400' :
-          status === 'rejected' ? 'bg-error' :
-            status === 'pending' ? 'bg-primary-container' : 'bg-tertiary'
+        status === 'rejected' ? 'bg-error' :
+          status === 'pending' ? 'bg-primary-container' : 'bg-tertiary'
         }`}></span>
       {status.replace('-', ' ')}
     </span>
@@ -40,6 +40,22 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
     );
   };
 
+  const handleRoundUpdate = (id, newRound) => {
+    updateStatusMutation.mutate(
+      { id, data: { currentRound: newRound } },
+      {
+        onSuccess: () => {
+          toast({ title: "Round Updated", description: `Advanced to ${newRound}` });
+        },
+        onError: (error) => {
+          toast({ title: "Update Failed", description: error.response?.data?.message || "Failed to update round", variant: "destructive" });
+        }
+      }
+    );
+  };
+
+  const standardRounds = ['Application Review', 'PI 1', 'PI 2', 'PI 3'];
+
   return (
     <div className="overflow-x-auto w-full">
       <table className="w-full text-left border-collapse whitespace-nowrap">
@@ -48,6 +64,7 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Candidate Name</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Course</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Status</th>
+            <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Current Round</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Tasks</th>
             <th className="py-4 px-6 font-label-md text-label-md text-on-surface-variant uppercase tracking-wider text-right">Actions</th>
           </tr>
@@ -55,13 +72,13 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
         <tbody className="divide-y divide-outline-variant/10">
           {isLoading ? (
             <tr>
-              <td colSpan={5} className="text-center py-12 text-on-surface-variant font-body-md">
+              <td colSpan={6} className="text-center py-12 text-on-surface-variant font-body-md">
                 Loading roster...
               </td>
             </tr>
           ) : applications?.length === 0 ? (
             <tr>
-              <td colSpan={5} className="text-center py-12 text-on-surface-variant font-body-md">
+              <td colSpan={6} className="text-center py-12 text-on-surface-variant font-body-md">
                 No applications found.
               </td>
             </tr>
@@ -80,6 +97,33 @@ const ApplicationsTable = ({ applications, isLoading, openViewTasksDialog, openA
               </td>
               <td className="py-4 px-6 font-body-md text-body-md text-on-surface-variant">{app.course || 'N/A'}</td>
               <td className="py-4 px-6">{getStatusBadge(app.status)}</td>
+              <td className="py-4 px-6">
+                <div className="relative inline-block">
+                  <select
+                    value={app.currentRound || 'Application Review'}
+                    onChange={(e) => {
+                      if (e.target.value === 'NEW_ROUND') {
+                        const newRoundName = window.prompt("Enter custom round name:");
+                        if (newRoundName && newRoundName.trim()) {
+                          handleRoundUpdate(app._id, newRoundName.trim());
+                        }
+                      } else {
+                        handleRoundUpdate(app._id, e.target.value);
+                      }
+                    }}
+                    className="bg-surface-container-lowest border border-outline-variant/30 rounded-lg pl-3 pr-8 py-2 font-label-sm text-label-sm text-on-surface focus:outline-none focus:border-primary-container transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="Application Review">Application Review</option>
+                    <option value="PI 1">PI 1</option>
+                    <option value="PI 2">PI 2</option>
+                    <option value="PI 3">PI 3</option>
+                    <option value="NEW_ROUND" className="text-primary-container font-bold">+ Create Custom Round...</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[16px]">
+                    expand_more
+                  </span>
+                </div>
+              </td>
               <td className="py-4 px-6">
                 <span className="inline-flex items-center bg-surface-container-lowest border border-outline-variant/30 text-on-surface px-3 py-1 rounded-full font-label-sm text-label-sm">
                   {app.tasks?.length || 0} Assigned

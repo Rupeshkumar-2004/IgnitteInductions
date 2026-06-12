@@ -29,10 +29,15 @@ const taskSchema = new mongoose.Schema({
 
   adminFeedback: String,
 
+  round: {
+    type: String,
+    default: 'Application Review'
+  },
+
   createdAt: { type: Date, default: Date.now }
 });
 
-// 2. Define Round Schema (Optional, but good for future)
+// 2. Define Round Schema
 const roundSchema = new mongoose.Schema({
   roundName: {
     type: String,

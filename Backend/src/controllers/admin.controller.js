@@ -8,44 +8,40 @@ import User from "../models/User.model.js";
 // one updation need to be done here is instead of two fliter getting over ridding
 // use merge..
 const getAllApplications = asyncHandler(async (req, res) => {
-    const { status, department, search, page = 1, limit = 10 } = req.query;
+    const { status, department, round, search, page = 1, limit = 10 } = req.query;
 
     //add filter
     const filter = {};
     if (status) filter.status = status;
+    if (round) filter.currentRound = round;
 
-    // Base Query with Populates
-    // We populate 'verifiedBy' inside the tasks array to show who checked it
-    let query = Application.find(filter)
-        .populate('user', 'fullName email department phone rollNumber')
-        .populate('tasks.verifiedBy', 'fullName email');
+    const userFilters = [];
 
     // Search Logic
     if (search) {
-        const users = await User.find({
+        userFilters.push({
             $or: [
                 { fullName: { $regex: search, $options: 'i' } },
                 { email: { $regex: search, $options: 'i' } }
             ]
-        }).select('_id');
-
-        const userIds = users.map(u => u._id);
-        filter.user = { $in: userIds };
-        // Re-apply query with filter and populates
-        query = Application.find(filter)
-            .populate('user', 'fullName email department phone rollNumber')
-            .populate('tasks.verifiedBy', 'fullName email');
+        });
     }
 
     // Department Filter
     if (department) {
-        const users = await User.find({ department: department }).select('_id');
-        const userIds = users.map(u => u._id);
-        filter.user = { $in: userIds };
-        query = Application.find(filter)
-            .populate('user', 'fullName email department phone rollNumber')
-            .populate('tasks.verifiedBy', 'fullName email');
+        userFilters.push({ department: department });
     }
+
+    //finding all the users by filtering
+    if (userFilters.length > 0) {
+        const matchedUsers = await User.find({ $and: userFilters }).select('_id');
+        const userIds = matchedUsers.map(u => u._id);
+        filter.user = { $in: userIds };
+    }
+
+    const query = Application.find(filter)
+        .populate('user', 'fullName email department phone rollNumber')
+        .populate('tasks.verifiedBy', 'fullName email');
 
     // Pagination
     const skip = (page - 1) * limit;
@@ -64,33 +60,53 @@ const getAllApplications = asyncHandler(async (req, res) => {
     );
 });
 
-// 2. Update Application Status (Global Status)
+// 2. Update Application Status (Global Status & Round Progression)
 const updateApplicationStatus = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
-    const { status, adminNotes } = req.body;
+    const { status, adminNotes, currentRound } = req.body;
 
-    const validStatuses = ['pending', 'under-review', 'accepted', 'rejected'];
-    if (!validStatuses.includes(status)) {
-        throw new ApiError(400, "Invalid status");
-    }
-
-    const application = await Application.findByIdAndUpdate(
-        applicationId,
-        {
-            status,
-            adminNotes: adminNotes || "",
-            reviewedBy: req.user._id,
-            statusUpdatedAt: Date.now()
-        },
-        { returnDocument: 'after' }
-    ).populate('user', 'fullName email');
-
+    const application = await Application.findById(applicationId);
     if (!application) {
         throw new ApiError(404, "Application not found");
     }
 
+    if (status !== undefined) {
+        const validStatuses = ['pending', 'under-review', 'accepted', 'rejected'];
+        if (!validStatuses.includes(status)) {
+            throw new ApiError(400, "Invalid status");
+        }
+        application.status = status;
+    }
+
+    if (adminNotes !== undefined) {
+        application.adminNotes = adminNotes;
+    }
+
+    if (currentRound !== undefined) {
+        application.currentRound = currentRound;
+
+        // Log round transition if it hasn't been logged yet
+        const roundExists = application.rounds.some(r => r.roundName === currentRound);
+        if (!roundExists) {
+            application.rounds.push({
+                roundName: currentRound,
+                verdict: 'hold'
+            });
+        }
+    }
+
+    application.reviewedBy = req.user._id;
+    application.statusUpdatedAt = Date.now();
+
+    await application.save();
+
+    const populatedApplication = await Application.findById(application._id)
+        .populate('user', 'fullName email department phone rollNumber')
+        .populate('reviewedBy', 'fullName email')
+        .populate('tasks.verifiedBy', 'fullName email');
+
     return res.status(200).json(
-        new ApiResponse(200, application, "Application status updated successfully")
+        new ApiResponse(200, populatedApplication, "Application updated successfully")
     );
 });
 
@@ -156,7 +172,7 @@ const deleteApplication = asyncHandler(async (req, res) => {
 // 6. Assign Task
 const assignTask = asyncHandler(async (req, res) => {
     const { applicationId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, round } = req.body;
 
     if (!title) throw new ApiError(400, "Task title is required");
 
@@ -167,7 +183,8 @@ const assignTask = asyncHandler(async (req, res) => {
         title,
         description,
         assignedBy: req.user._id,
-        status: 'pending'
+        status: 'pending',
+        round: round || application.currentRound || 'Application Review'
     };
 
     application.tasks.push(newTask);

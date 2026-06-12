@@ -7,7 +7,7 @@ export const registerSchema = z.object({
   department: z.string().min(2, 'Department is required'),
   phone: z.string().min(10, 'Valid phone number is required'),
   rollNumber: z.string().optional(),
-  role: z.enum(['student', 'admin', 'interviewer']).optional()
+  role: z.enum(['student', 'admin', 'interviewer']).default('student')
 });
 
 export const loginSchema = z.object({

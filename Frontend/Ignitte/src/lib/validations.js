@@ -29,3 +29,13 @@ export const applicationSchema = z.object({
 export const taskSchema = z.object({
   submission: z.string().min(1, { message: 'Submission content is required.' })
 });
+
+//team member schema
+export const teamMemberSchema = z.object({
+  fullName: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
+  email: z.string().email({ message: 'Please enter a valid email address.' }),
+  phone: z.string().min(10, { message: 'Please enter a valid phone number.' }),
+  department: z.string().min(1, { message: 'Department is required.' }),
+  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  role: z.enum(['interviewer', 'admin'], { message: 'Please select a valid role.' })
+});

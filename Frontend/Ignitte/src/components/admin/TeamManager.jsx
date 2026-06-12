@@ -1,22 +1,27 @@
-import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateTeamMember, useTeamMembers, useRemoveTeamMember } from '@/hooks/useAdminQueries';
 import { useAuth } from '@/hooks/useAuth';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { teamMemberSchema } from '@/lib/validations';
 
 const TeamManager = () => {
-  const [teamData, setTeamData] = useState({ fullName: '', email: '', phone: '', department: '', password: '', role: 'interviewer' });
   const { toast } = useToast();
   const createTeamMember = useCreateTeamMember();
   const removeTeamMember = useRemoveTeamMember();
   const { data: teamMembers, isLoading } = useTeamMembers();
   const { user } = useAuth();
 
-  const handleCreateTeamMember = (e) => {
-    e.preventDefault();
-    createTeamMember.mutate(teamData, {
+  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+    resolver: zodResolver(teamMemberSchema),
+    defaultValues: { fullName: '', email: '', phone: '', department: '', password: '', role: 'interviewer' }
+  });
+
+  const onSubmit = (data) => {
+    createTeamMember.mutate(data, {
         onSuccess: () => {
-            toast({ title: "Success", description: `New ${teamData.role} created!` });
-            setTeamData({ fullName: '', email: '', phone: '', department: '', password: '', role: 'interviewer' });
+            toast({ title: "Success", description: `New ${data.role} created!` });
+            reset();
         },
         onError: (error) => {
             toast({ title: "Error", description: error.response?.data?.message || "Failed", variant: "destructive" });
@@ -66,14 +71,13 @@ const TeamManager = () => {
             </p>
           </div>
 
-          <form onSubmit={handleCreateTeamMember} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Role</label>
               <div className="relative">
                 <select 
-                  value={teamData.role} 
-                  onChange={(e) => setTeamData({...teamData, role: e.target.value})}
+                  {...register("role")}
                   className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all appearance-none cursor-pointer"
                 >
                   <option value="interviewer">Interviewer</option>
@@ -83,66 +87,62 @@ const TeamManager = () => {
                   expand_more
                 </span>
               </div>
+              {errors.role && <p className="text-sm text-error mt-1">{errors.role.message}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Full Name</label>
               <input 
                 type="text" 
-                value={teamData.fullName} 
-                onChange={(e) => setTeamData({...teamData, fullName: e.target.value})} 
-                required 
+                {...register("fullName")}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 placeholder="e.g. Jane Doe"
               />
+              {errors.fullName && <p className="text-sm text-error mt-1">{errors.fullName.message}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Email Address</label>
               <input 
                 type="email" 
-                value={teamData.email} 
-                onChange={(e) => setTeamData({...teamData, email: e.target.value})} 
-                required 
+                {...register("email")}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 placeholder="jane.doe@ignitte.org"
               />
+              {errors.email && <p className="text-sm text-error mt-1">{errors.email.message}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Phone Number</label>
               <input 
                 type="tel" 
-                value={teamData.phone} 
-                onChange={(e) => setTeamData({...teamData, phone: e.target.value})} 
-                required 
+                {...register("phone")}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 placeholder="+91 XXXXX XXXXX"
               />
+              {errors.phone && <p className="text-sm text-error mt-1">{errors.phone.message}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Department</label>
               <input 
                 type="text" 
-                value={teamData.department} 
-                onChange={(e) => setTeamData({...teamData, department: e.target.value})} 
-                required 
+                {...register("department")}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 placeholder="e.g. Physics, Chemistry"
               />
+              {errors.department && <p className="text-sm text-error mt-1">{errors.department.message}</p>}
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="font-label-md text-label-md text-on-surface-variant">Account Password</label>
               <input 
                 type="password" 
-                value={teamData.password} 
-                onChange={(e) => setTeamData({...teamData, password: e.target.value})} 
-                required 
+                {...register("password")}
                 className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
                 placeholder="••••••••"
               />
+              {errors.password && <p className="text-sm text-error mt-1">{errors.password.message}</p>}
             </div>
           </div>
 

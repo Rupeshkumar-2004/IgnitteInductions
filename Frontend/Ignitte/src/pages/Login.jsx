@@ -30,7 +30,7 @@ const Login = () => {
         description: 'You have successfully logged in.',
       });
 
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.role === 'interviewer') {
         navigate("/admin/dashboard", { replace: true });
       } else {
         const from = location.state?.from?.pathname || '/dashboard';

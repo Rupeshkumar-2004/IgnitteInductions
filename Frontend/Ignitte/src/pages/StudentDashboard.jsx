@@ -83,31 +83,48 @@ const StudentDashboard = () => {
     );
   }
 
-  // Determine active timeline steps
-  const steps = [
-    { key: 'applied', label: 'Applied', icon: 'check', done: true },
-    {
-      key: 'demo',
-      label: 'Teaching Demo / Task',
-      icon: 'school',
-      done: application.status !== 'pending',
-      active: application.status === 'under-review' || (application.tasks && application.tasks.length > 0)
-    },
-    {
-      key: 'pi',
-      label: 'Multiple PI Rounds',
-      icon: 'forum',
-      done: application.status === 'accepted' || application.status === 'rejected',
-      active: application.currentRound === 'Multiple PI Rounds'
-    },
-    {
-      key: 'decision',
-      label: 'Decision',
-      icon: 'flag',
-      done: application.status === 'accepted' || application.status === 'rejected',
-      active: application.status === 'accepted' || application.status === 'rejected'
-    }
-  ];
+  // Determine active timeline steps dynamically based on the application's round history
+  const roundsList = (application.rounds && application.rounds.length > 0)
+    ? application.rounds.map((r) => typeof r === 'string' ? r : r.roundName)
+    : ['Application Review'];
+  const steps = roundsList.map((r) => {
+    const isCurrent = r === application.currentRound;
+    const isFinalStatus = application.status === 'accepted' || application.status === 'rejected';
+    const isDone = !isCurrent || isFinalStatus;
+
+    let icon = 'school';
+    if (r.toLowerCase().includes('review')) icon = 'rate_review';
+    if (r.toLowerCase().includes('pi')) icon = 'forum';
+    if (r.toLowerCase().includes('hr')) icon = 'groups';
+    if (r.toLowerCase().includes('round 1')) icon = 'looks_one';
+    if (r.toLowerCase().includes('round 2')) icon = 'looks_two';
+    if (r.toLowerCase().includes('round 3')) icon = 'looks_3';
+
+    return {
+      key: r,
+      label: r,
+      icon,
+      done: isDone,
+      active: isCurrent && !isFinalStatus
+    };
+  });
+
+  // Add the final Decision step
+  steps.push({
+    key: 'decision',
+    label: application.status === 'accepted' ? 'Accepted' : application.status === 'rejected' ? 'Rejected' : 'Decision',
+    icon: application.status === 'accepted' ? 'check_circle' : application.status === 'rejected' ? 'cancel' : 'flag',
+    done: application.status === 'accepted' || application.status === 'rejected',
+    active: application.status === 'accepted' || application.status === 'rejected'
+  });
+
+  // Group tasks by round
+  const groupedTasks = application.tasks ? application.tasks.reduce((acc, task) => {
+    const r = task.round || 'Application Review';
+    if (!acc[r]) acc[r] = [];
+    acc[r].push(task);
+    return acc;
+  }, {}) : {};
 
   // Get tasks with feedback
   const feedbackTasks = application.tasks?.filter(t => t.adminFeedback) || [];
@@ -130,9 +147,9 @@ const StudentDashboard = () => {
             </p>
           </div>
           <div className="bg-surface-container/50 border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-3">
-            <span className={`w-2.5 h-2.5 rounded-full ${application.status === 'accepted' ? 'bg-green-500' : application.status === 'rejected' ? 'bg-error' : 'bg-primary-container animate-pulse'}`}></span>
+            <span className={`w-2.5 h-2.5 rounded-full ${(application.status || 'pending') === 'accepted' ? 'bg-green-500' : (application.status || 'pending') === 'rejected' ? 'bg-error' : 'bg-primary-container animate-pulse'}`}></span>
             <span className="font-label-md text-label-md text-on-surface capitalize">
-              Status: {application.status.replace('-', ' ')}
+              Status: {(application.status || 'pending').replace('-', ' ')}
             </span>
           </div>
         </header>
@@ -153,8 +170,8 @@ const StudentDashboard = () => {
                   return (
                     <div key={step.key} className={`relative z-10 flex md:flex-col items-center gap-4 md:gap-2 ${!isCompleted && !isActive ? 'opacity-40' : ''}`}>
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center text-surface transition-all duration-300 ${isCompleted ? 'bg-green-500 text-surface' :
-                          isActive ? 'bg-primary-container ring-4 ring-primary-container/20' :
-                            'bg-surface-container border border-outline-variant/30 text-on-surface-variant'
+                        isActive ? 'bg-primary-container ring-4 ring-primary-container/20' :
+                          'bg-surface-container border border-outline-variant/30 text-on-surface-variant'
                         }`}>
                         <span className="material-symbols-outlined text-[20px]">
                           {isCompleted ? 'check' : step.icon}
@@ -186,81 +203,100 @@ const StudentDashboard = () => {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {application.tasks.map((task) => (
-                    <div
-                      key={task._id}
-                      className={`bg-surface-container/20 backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300 ${task.status === 'pending' ? 'border-primary-container/45' : 'border-outline-variant/20'
-                        }`}
-                    >
-                      <div className="flex justify-between items-start gap-4 mb-4">
-                        <div>
-                          <h3 className="font-headline-md text-[20px] font-bold mb-1">{task.title}</h3>
-                          <p className="font-body-md text-on-surface-variant">{task.description}</p>
-                        </div>
-                        <span className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm border capitalize ${task.status === 'pending'
-                            ? 'bg-primary-container/10 border-primary-container/30 text-primary-container'
-                            : 'bg-green-500/10 border-green-500/30 text-green-400'
-                          }`}>
-                          {task.status.replace('-', ' ')}
+                <div className="space-y-8">
+                  {Object.entries(groupedTasks).map(([roundName, tasks]) => (
+                    <div key={roundName} className="space-y-4">
+                      <div className="flex items-center gap-2.5 px-1 py-1">
+                        <span className="material-symbols-outlined text-primary-container text-[18px]">layers</span>
+                        <h4 className="font-title-sm text-title-sm text-primary-container font-semibold uppercase tracking-wider">{roundName}</h4>
+                        <span className="h-px bg-outline-variant/20 flex-grow"></span>
+                        <span className="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-outline-variant/25 px-2 py-0.5 rounded-full font-medium">
+                          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
                         </span>
                       </div>
 
-                      {task.status === 'pending' ? (
-                        <div className="space-y-4 pt-2 border-t border-outline-variant/10">
-                          <div className="space-y-2">
-                            <label className="font-label-md text-label-md text-on-surface block">
-                              Submission Link (Google Drive / GitHub / YouTube)
-                            </label>
-                            <div className="relative">
-                              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
-                                link
-                              </span>
-                              <input
-                                type="url"
-                                placeholder="Paste your submission link here..."
-                                value={submissionLinks[task._id] || ''}
-                                onChange={(e) => handleLinkChange(task._id, e.target.value)}
-                                className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl pl-10 pr-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="flex justify-end">
-                            <button
-                              type="button"
-                              onClick={() => handleTaskSubmit(task._id)}
-                              disabled={submittingId === task._id}
-                              className="bg-primary-container text-surface font-label-md text-label-md px-6 py-3 rounded-xl hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                              {submittingId === task._id ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 animate-spin text-surface" />
-                                  Submitting...
-                                </>
-                              ) : (
-                                <>
-                                  Submit Task
-                                  <span className="material-symbols-outlined text-[16px]">send</span>
-                                </>
-                              )}
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-surface-container-lowest/50 border border-outline-variant/20 rounded-xl p-4 mt-2">
-                          <p className="font-label-md text-label-md text-on-surface-variant mb-1">Your Submission:</p>
-                          <a
-                            href={task.studentSubmission}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-primary hover:underline font-body-md break-all flex items-center gap-1.5"
+                      <div className="space-y-6 pl-3 border-l border-outline-variant/20 ml-2">
+                        {tasks.map((task) => (
+                          <div
+                            key={task._id}
+                            className={`bg-surface-container/20 backdrop-blur-xl border rounded-2xl p-6 transition-all duration-300 ${task.status === 'pending' ? 'border-primary-container/45' : 'border-outline-variant/20'
+                              }`}
                           >
-                            <span className="material-symbols-outlined text-[18px]">open_in_new</span>
-                            {task.studentSubmission}
-                          </a>
-                        </div>
-                      )}
+                            <div className="flex justify-between items-start gap-4 mb-4">
+                              <div>
+                                <h3 className="font-headline-md text-[20px] font-bold mb-1">{task.title}</h3>
+                                <p className="font-body-md text-on-surface-variant">{task.description}</p>
+                              </div>
+                              <span className={`px-3 py-1.5 rounded-full font-label-sm text-label-sm border capitalize ${task.status === 'pending'
+                                ? 'bg-primary-container/10 border-primary-container/30 text-primary-container'
+                                : task.status === 'submitted'
+                                  ? 'bg-tertiary/10 border-tertiary/30 text-tertiary'
+                                  : task.status === 'rejected'
+                                    ? 'bg-error/10 border-error/30 text-error'
+                                    : 'bg-green-500/10 border-green-500/30 text-green-400'
+                                }`}>
+                                {task.status.replace('-', ' ')}
+                              </span>
+                            </div>
+
+                            {task.status === 'pending' || task.status === 'rejected' ? (
+                              <div className="space-y-4 pt-2 border-t border-outline-variant/10">
+                                <div className="space-y-2">
+                                  <label className="font-label-md text-label-md text-on-surface block">
+                                    Submission Link (Google Drive / GitHub / YouTube)
+                                  </label>
+                                  <div className="relative">
+                                    <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]">
+                                      link
+                                    </span>
+                                    <input
+                                      type="url"
+                                      placeholder="Paste your submission link here..."
+                                      value={submissionLinks[task._id] || ''}
+                                      onChange={(e) => handleLinkChange(task._id, e.target.value)}
+                                      className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl pl-10 pr-4 py-3 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all placeholder:text-on-surface-variant/30"
+                                    />
+                                  </div>
+                                </div>
+
+                                <div className="flex justify-end">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleTaskSubmit(task._id)}
+                                    disabled={submittingId === task._id}
+                                    className="bg-primary-container text-surface font-label-md text-label-md px-6 py-3 rounded-xl hover:opacity-95 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                                  >
+                                    {submittingId === task._id ? (
+                                      <>
+                                        <Loader2 className="h-4 w-4 animate-spin text-surface" />
+                                        Submitting...
+                                      </>
+                                    ) : (
+                                      <>
+                                        Submit Task
+                                        <span className="material-symbols-outlined text-[16px]">send</span>
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="bg-surface-container-lowest/50 border border-outline-variant/20 rounded-xl p-4 mt-2">
+                                <p className="font-label-md text-label-md text-on-surface-variant mb-1">Your Submission:</p>
+                                <a
+                                  href={task.studentSubmission}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-primary hover:underline font-body-md break-all flex items-center gap-1.5"
+                                >
+                                  <span className="material-symbols-outlined text-[18px]">open_in_new</span>
+                                  {task.studentSubmission}
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>

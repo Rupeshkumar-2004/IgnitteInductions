@@ -60,89 +60,113 @@ const ViewTasksDialog = ({ isOpen, onOpenChange, studentApp }) => {
           Task Submissions for {studentApp?.user?.fullName}
         </h3>
         
-        <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 mb-6 scrollbar-thin">
+        <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 mb-6 scrollbar-thin">
             {(!studentApp?.tasks?.length) ? (
                 <div className="text-center py-12 text-on-surface-variant bg-surface-container-lowest/30 border border-dashed border-outline-variant/30 rounded-xl">
                   <span className="material-symbols-outlined text-[36px] text-on-surface-variant/30 mb-2 block">assignment</span>
                   No tasks assigned to this candidate yet.
                 </div>
             ) : (
-                studentApp.tasks.map((task, index) => (
-                    <div key={index} className="border border-outline-variant/20 rounded-xl p-5 bg-surface-container-lowest/20 flex flex-col gap-4">
-                        <div className="flex justify-between items-start gap-4">
-                            <div>
+                (() => {
+                  const groupedTasks = studentApp.tasks.reduce((acc, task) => {
+                    const r = task.round || 'Application Review';
+                    if (!acc[r]) acc[r] = [];
+                    acc[r].push(task);
+                    return acc;
+                  }, {});
+
+                  return Object.entries(groupedTasks).map(([roundName, tasks]) => (
+                    <div key={roundName} className="space-y-4">
+                      <div className="flex items-center gap-2.5 px-1 py-1">
+                        <span className="material-symbols-outlined text-primary-container text-[18px]">layers</span>
+                        <h4 className="font-title-sm text-title-sm text-primary-container font-semibold uppercase tracking-wider">{roundName}</h4>
+                        <span className="h-px bg-outline-variant/20 flex-grow"></span>
+                        <span className="text-[11px] text-on-surface-variant bg-surface-container-lowest border border-outline-variant/25 px-2 py-0.5 rounded-full font-medium">
+                          {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'}
+                        </span>
+                      </div>
+
+                      <div className="space-y-4 pl-3 border-l border-outline-variant/20 ml-2">
+                        {tasks.map((task, index) => (
+                          <div key={task._id || index} className="border border-outline-variant/20 rounded-xl p-5 bg-surface-container-lowest/20 flex flex-col gap-4">
+                            <div className="flex justify-between items-start gap-4">
+                              <div>
                                 <h4 className="font-title-md text-title-md text-on-surface font-semibold">{task.title}</h4>
                                 <p className="font-body-md text-body-md text-on-surface-variant mt-1">{task.description}</p>
-                            </div>
-                            <span className={`inline-flex items-center gap-1 py-1 px-3 rounded-full font-label-sm text-label-sm border capitalize ${
-                              task.status === 'verified' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
-                              task.status === 'rejected' ? 'bg-error/10 border-error/30 text-error' :
-                              task.status === 'submitted' ? 'bg-tertiary/10 border-tertiary/30 text-tertiary' :
-                              'bg-surface-variant border-outline-variant/30 text-on-surface-variant'
-                            }`}>
-                              {task.status}
-                            </span>
-                        </div>
-                        
-                        <div className="pt-4 border-t border-outline-variant/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div className="font-body-md text-body-md">
-                                <span className="font-semibold text-on-surface-variant">Submission: </span>
-                                {task.studentSubmission ? (
-                                    <a 
-                                      href={task.studentSubmission} 
-                                      target="_blank" 
-                                      rel="noreferrer" 
-                                      className="text-primary-container hover:underline inline-flex items-center gap-1.5"
-                                    >
-                                        View Resource <span className="material-symbols-outlined text-[16px]">open_in_new</span>
-                                    </a>
-                                ) : <span className="text-yellow-500 italic">No submission yet</span>}
+                              </div>
+                              <span className={`inline-flex items-center gap-1 py-1 px-3 rounded-full font-label-sm text-label-sm border capitalize ${
+                                task.status === 'verified' ? 'bg-green-500/10 border-green-500/30 text-green-400' :
+                                task.status === 'rejected' ? 'bg-error/10 border-error/30 text-error' :
+                                task.status === 'submitted' ? 'bg-tertiary/10 border-tertiary/30 text-tertiary' :
+                                'bg-surface-variant border-outline-variant/30 text-on-surface-variant'
+                              }`}>
+                                {task.status}
+                              </span>
                             </div>
                             
-                            <div className="flex flex-col items-end gap-2">
+                            <div className="pt-4 border-t border-outline-variant/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                              <div className="font-body-md text-body-md">
+                                <span className="font-semibold text-on-surface-variant">Submission: </span>
+                                {task.studentSubmission ? (
+                                  <a 
+                                    href={task.studentSubmission} 
+                                    target="_blank" 
+                                    rel="noreferrer" 
+                                    className="text-primary-container hover:underline inline-flex items-center gap-1.5"
+                                  >
+                                    View Resource <span className="material-symbols-outlined text-[16px]">open_in_new</span>
+                                  </a>
+                                ) : <span className="text-yellow-500 italic">No submission yet</span>}
+                              </div>
+                              
+                              <div className="flex flex-col items-end gap-2">
                                 <div className="text-xs text-on-surface-variant">
-                                    Assigned: {new Date(task.createdAt).toLocaleDateString()}
+                                  Assigned: {new Date(task.createdAt).toLocaleDateString()}
                                 </div>
                                 
                                 {task.verifiedBy && (
-                                    <div className="text-xs text-green-400 font-medium">
-                                        Reviewed by: {task.verifiedBy.fullName || task.verifiedBy.email || "Admin"}
-                                    </div>
+                                  <div className="text-xs text-green-400 font-medium">
+                                    Reviewed by: {task.verifiedBy.fullName || task.verifiedBy.email || "Admin"}
+                                  </div>
                                 )}
 
                                 {canManageTask(task) && (
-                                    <div className="flex gap-2 mt-1">
-                                        {task.status !== 'verified' && (
-                                            <>
-                                                <button 
-                                                  onClick={() => handleVerifyTask(task._id, 'verified')}
-                                                  className="px-3 py-1.5 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/10 text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
-                                                >
-                                                    <span className="material-symbols-outlined text-[14px]">thumb_up</span> Verify
-                                                </button>
-                                                <button 
-                                                  onClick={() => handleVerifyTask(task._id, 'rejected')}
-                                                  className="px-3 py-1.5 border border-error/30 rounded-lg text-error hover:bg-error/10 text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
-                                                >
-                                                    <span className="material-symbols-outlined text-[14px]">thumb_down</span> Reject
-                                                </button>
-                                            </>
-                                        )}
-                                        
-                                        {task.status === 'verified' && (
-                                            <button 
-                                              onClick={() => handleVerifyTask(task._id, 'submitted')}
-                                              className="px-3 py-1.5 border border-outline-variant/30 rounded-lg text-on-surface-variant hover:text-on-surface text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
-                                            >
-                                                <span className="material-symbols-outlined text-[14px]">undo</span> Mark Unverified
-                                            </button>
-                                        )}
-                                    </div>
+                                  <div className="flex gap-2 mt-1">
+                                    {task.status !== 'verified' && (
+                                      <>
+                                        <button 
+                                          onClick={() => handleVerifyTask(task._id, 'verified')}
+                                          className="px-3 py-1.5 border border-green-500/30 rounded-lg text-green-400 hover:bg-green-500/10 text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">thumb_up</span> Verify
+                                        </button>
+                                        <button 
+                                          onClick={() => handleVerifyTask(task._id, 'rejected')}
+                                          className="px-3 py-1.5 border border-error/30 rounded-lg text-error hover:bg-error/10 text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
+                                        >
+                                          <span className="material-symbols-outlined text-[14px]">thumb_down</span> Reject
+                                        </button>
+                                      </>
+                                    )}
+                                    
+                                    {task.status === 'verified' && (
+                                      <button 
+                                        onClick={() => handleVerifyTask(task._id, 'submitted')}
+                                        className="px-3 py-1.5 border border-outline-variant/30 rounded-lg text-on-surface-variant hover:text-on-surface text-xs font-label-sm transition-all flex items-center gap-1 cursor-pointer"
+                                      >
+                                        <span className="material-symbols-outlined text-[14px]">undo</span> Mark Unverified
+                                      </button>
+                                    )}
+                                  </div>
                                 )}
+                              </div>
                             </div>
-                        </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                ))
+                  ));
+                })()
             )}
         </div>
 

@@ -17,6 +17,8 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   // status filter state
   const [statusFilter, setStatusFilter] = useState('all');
+  // round filter state
+  const [roundFilter, setRoundFilter] = useState('all');
   // page state
   const [page, setPage] = useState(1);
 
@@ -30,7 +32,8 @@ const AdminDashboard = () => {
     page,
     limit: 10,
     search: searchTerm,
-    status: statusFilter !== 'all' ? statusFilter : undefined
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    round: roundFilter !== 'all' ? roundFilter : undefined
   });
 
   // Dialog Handlers
@@ -63,7 +66,7 @@ const AdminDashboard = () => {
           <div className="bg-surface-container/50 border border-outline-variant/30 rounded-xl px-4 py-2 flex items-center gap-3">
             <span className="w-2 h-2 rounded-full bg-primary-container animate-pulse"></span>
             <span className="font-label-md text-label-md text-on-surface capitalize">
-              Admin: {user?.fullName || "User"}
+              {user?.role}: {user?.fullName || "User"}
             </span>
           </div>
         </header>
@@ -73,8 +76,8 @@ const AdminDashboard = () => {
           <button
             onClick={() => setActiveTab('applications')}
             className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${activeTab === 'applications'
-                ? 'text-primary-container font-semibold'
-                : 'text-on-surface-variant hover:text-on-surface'
+              ? 'text-primary-container font-semibold'
+              : 'text-on-surface-variant hover:text-on-surface'
               }`}
           >
             Applications
@@ -82,18 +85,20 @@ const AdminDashboard = () => {
               <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container"></span>
             )}
           </button>
-          <button
-            onClick={() => setActiveTab('team')}
-            className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${activeTab === 'team'
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => setActiveTab('team')}
+              className={`pb-4 font-label-md text-label-md transition-all relative cursor-pointer ${activeTab === 'team'
                 ? 'text-primary-container font-semibold'
                 : 'text-on-surface-variant hover:text-on-surface'
-              }`}
-          >
-            Manage Team
-            {activeTab === 'team' && (
-              <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container"></span>
-            )}
-          </button>
+                }`}
+            >
+              Manage Team
+              {activeTab === 'team' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-container"></span>
+              )}
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -117,21 +122,40 @@ const AdminDashboard = () => {
                 />
               </div>
 
-              <div className="relative w-full md:w-[180px]">
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all appearance-none cursor-pointer"
-                >
-                  <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
-                  <option value="under-review">Under Review</option>
-                  <option value="accepted">Accepted</option>
-                  <option value="rejected">Rejected</option>
-                </select>
-                <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">
-                  expand_more
-                </span>
+              <div className="flex flex-wrap md:flex-nowrap gap-4 w-full md:w-auto">
+                <div className="relative w-full md:w-[180px]">
+                  <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="under-review">Under Review</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">
+                    expand_more
+                  </span>
+                </div>
+
+                <div className="relative w-full md:w-[180px]">
+                  <select
+                    value={roundFilter}
+                    onChange={(e) => setRoundFilter(e.target.value)}
+                    className="w-full bg-surface-container-lowest border border-outline-variant/30 rounded-xl px-4 py-2.5 font-body-md text-body-md text-on-surface focus:outline-none focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Rounds</option>
+                    <option value="Application Review">Application Review</option>
+                    <option value="PI 1">PI 1</option>
+                    <option value="PI 2">PI 2</option>
+                    <option value="PI 3">PI 3</option>
+                  </select>
+                  <span className="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none text-[20px]">
+                    expand_more
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -148,7 +172,7 @@ const AdminDashboard = () => {
           </div>
         )}
 
-        {activeTab === 'team' && (
+        {activeTab === 'team' && user?.role === 'admin' && (
           <div className="animate-in fade-in duration-300">
             <TeamManager />
           </div>
